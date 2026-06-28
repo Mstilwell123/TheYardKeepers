@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
   Phone, Mail, MapPin, Check, Clock, ShieldCheck,
-  Camera, Truck, PawPrint, MessageCircle, ArrowRight, Dog, Footprints, Home, Star,
+  Camera, Truck, PawPrint, MessageCircle, ArrowRight, Dog, Footprints, Home, Star, GraduationCap,
 } from "lucide-react";
 import { config, YARD, WALKS } from "./config.js";
 
@@ -325,7 +325,11 @@ export default function TheYardKeepers() {
           font-size:clamp(20px,2.6vw,27px);line-height:1.3;margin:0 0 18px;letter-spacing:-.01em;}
         .yk-founder p{color:var(--ink-soft);font-size:16px;margin:0 0 12px;}
         .yk-founder .sig{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;
-          color:var(--ink);font-size:18px;margin-top:8px;}
+          color:var(--ink);font-size:18px;margin-top:18px;}
+        .yk-creds{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;}
+        .yk-creds span{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;
+          color:var(--ink);background:var(--orange-soft);padding:7px 13px;border-radius:999px;}
+        .yk-creds svg{color:var(--orange);flex:none;}
 
         /* area */
         .yk-area{display:flex;gap:18px;flex-wrap:wrap;}
@@ -783,14 +787,21 @@ export default function TheYardKeepers() {
               "My name and my reputation are on every single visit — so your gate gets latched and your yard gets spotless."
             </blockquote>
             <p>
-              Hi, I'm <b>{config.ownerName}</b> — the Yard Keeper. I'm a college student working my way
-              through school, and I started {config.businessName} to do honest work for my neighbors and
-              save for my college fund.
+              Hi, I'm <b>{config.ownerName}</b> — the Yard Keeper. I'm a licensed CNA (Certified
+              Nursing Assistant) and a second-year pre-med student at Oregon State University.
+              Caring for people and animals — reliably, and with real attention to detail — is
+              simply what I do.
             </p>
             <p>
-              This summer I'm serving {config.primaryCity}. Come {config.comingSoonWhen}, I'm bringing the same care to {config.comingSoonCity}.
-              Either way, you get a local you can count on — not a faceless service.
+              I started {config.businessName} to do honest work for my neighbors and help put
+              myself through school. This summer I'm serving {config.primaryCity}; come {config.comingSoonWhen}, I'm
+              bringing the same care to {config.comingSoonCity}, the town I call home at OSU. Either way,
+              you get a local you can count on — not a faceless service.
             </p>
+            <div className="yk-creds">
+              <span><ShieldCheck size={14} /> Licensed CNA</span>
+              <span><GraduationCap size={14} /> Pre-Med @ Oregon State</span>
+            </div>
             <div className="sig">— {config.ownerName}, Owner</div>
           </div>
         </div>
