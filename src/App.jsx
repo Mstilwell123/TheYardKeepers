@@ -4,6 +4,7 @@ import {
   Camera, Truck, PawPrint, MessageCircle, ArrowRight, Dog, Footprints, Home, Star, GraduationCap,
 } from "lucide-react";
 import { config, YARD, WALKS } from "./config.js";
+import { trackEvent } from "./analytics.js";
 
 /**
  * The Yard Keepers — single-file landing page.
@@ -150,6 +151,7 @@ export default function TheYardKeepers() {
           body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error("Bad response");
+        trackEvent("quote_submitted", { services: selectedServiceLabels.join(", ") });
         setSubmitted(true);
       } catch {
         setError("Something went wrong sending that. Please call or text me instead — I'd love to help.");
@@ -502,7 +504,7 @@ export default function TheYardKeepers() {
             {config.businessName}
           </div>
           <div className="yk-nav-actions">
-            <a className="yk-nav-call yk-hide-sm" href={TEL}><Phone size={16} /> {config.phoneDisplay}</a>
+            <a className="yk-nav-call yk-hide-sm" href={TEL} onClick={() => trackEvent("call_click", { location: "nav" })}><Phone size={16} /> {config.phoneDisplay}</a>
             <button className="yk-btn yk-btn-primary" onClick={() => scrollToForm()}>
               Get a free quote
             </button>
@@ -854,7 +856,7 @@ export default function TheYardKeepers() {
               <div><ShieldCheck size={18} /> 100% satisfaction guarantee</div>
               <div><Check size={18} /> No contracts, no pressure</div>
             </div>
-            <a className="yk-form-call" href={TEL}><Phone size={18} /> Prefer to talk? Call or text {config.phoneDisplay}</a>
+            <a className="yk-form-call" href={TEL} onClick={() => trackEvent("call_click", { location: "form" })}><Phone size={18} /> Prefer to talk? Call or text {config.phoneDisplay}</a>
           </div>
 
           <div className="yk-card-form yk-reveal">
@@ -934,7 +936,7 @@ export default function TheYardKeepers() {
               </p>
             </div>
             <div className="yk-foot-contact">
-              <a href={TEL}><Phone size={17} /> {config.phoneDisplay}</a>
+              <a href={TEL} onClick={() => trackEvent("call_click", { location: "footer" })}><Phone size={17} /> {config.phoneDisplay}</a>
               <a href="#quote"><Mail size={17} /> Request a free quote</a>
               <a href="#services"><MapPin size={17} /> {config.primaryCity}, {config.primaryState} · {config.comingSoonCity} from {config.comingSoonWhen}</a>
             </div>
@@ -947,7 +949,7 @@ export default function TheYardKeepers() {
       </footer>
 
       {/* FLOATING CALL BUTTON (mobile) */}
-      <a className="yk-fab" href={TEL} aria-label={`Call ${config.businessName}`}>
+      <a className="yk-fab" href={TEL} aria-label={`Call ${config.businessName}`} onClick={() => trackEvent("call_click", { location: "fab" })}>
         <Phone size={18} /> Call now
       </a>
     </div>
