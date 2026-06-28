@@ -85,7 +85,7 @@ const FAQ = [
 ];
 
 const DOGS = [
-  { img: "/dogs/dog-small.jpg", name: "Biscuit", breed: "Corgi", size: "Small", pos: "center 22%" },
+  { img: "/dogs/dog-poodle.jpg", name: "Coco", breed: "Teacup Poodle", size: "Small", pos: "center 30%" },
   { img: "/dogs/dog-medium.jpg", name: "Scout", breed: "Border Collie", size: "Medium", pos: "30% center" },
   { img: "/dogs/dog-large.jpg", name: "Ranger", breed: "Golden Retriever", size: "Medium–large", pos: "center 32%" },
   { img: "/dogs/dog-greatdane.jpg", name: "Duke", breed: "Great Dane", size: "Extra-large", pos: "center 18%" },
@@ -289,16 +289,16 @@ export default function TheYardKeepers() {
         .yk-card .yk-link:focus-visible{outline:3px solid var(--orange);outline-offset:3px;border-radius:4px;}
 
         /* dog size gallery */
-        .yk-dogs{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
-        .yk-dogcard{margin:0;background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;
+        .yk-dogs{display:grid;grid-template-columns:repeat(4,minmax(0,180px));gap:16px;justify-content:center;}
+        .yk-dogcard{margin:0;background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;
           transition:transform .18s ease,box-shadow .18s ease;}
         .yk-dogcard:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(24,19,16,.10);}
         .yk-dogcard img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;}
-        .yk-dogcard figcaption{padding:14px 16px;display:flex;flex-direction:column;gap:1px;}
-        .yk-dogsize{align-self:flex-start;font-size:11px;font-weight:700;letter-spacing:.05em;
-          text-transform:uppercase;color:#fff;background:var(--orange);padding:3px 9px;border-radius:999px;margin-bottom:8px;}
-        .yk-dogcard b{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:18px;}
-        .yk-dogbreed{font-size:13px;color:var(--ink-soft);}
+        .yk-dogcard figcaption{padding:12px 14px;display:flex;flex-direction:column;gap:1px;}
+        .yk-dogsize{align-self:flex-start;font-size:10px;font-weight:700;letter-spacing:.05em;
+          text-transform:uppercase;color:#fff;background:var(--orange);padding:3px 8px;border-radius:999px;margin-bottom:7px;}
+        .yk-dogcard b{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:16px;}
+        .yk-dogbreed{font-size:12px;color:var(--ink-soft);}
 
         /* steps */
         .yk-steps-sec{background:var(--ink);color:#fff;}
@@ -487,7 +487,7 @@ export default function TheYardKeepers() {
           .yk-hero-grid{grid-template-columns:1fr;gap:24px;}
           .yk-hero-art{order:-1;max-width:380px;}
           .yk-cards{grid-template-columns:1fr;}
-          .yk-dogs{grid-template-columns:1fr 1fr;}
+          .yk-dogs{grid-template-columns:repeat(2,minmax(0,160px));}
           .yk-steps{grid-template-columns:1fr 1fr;}
           .yk-founder{grid-template-columns:1fr;gap:26px;}
           .yk-founder-photo{max-width:300px;}
@@ -545,13 +545,13 @@ export default function TheYardKeepers() {
           </div>
           <div className="yk-hero-art">
             <img
-              src="/dogs/dog-small.jpg"
-              alt={`Biscuit, a happy corgi, in a clean backyard in ${config.primaryCity}, ${config.primaryState}`}
+              src="/dogs/dog-poodle.jpg"
+              alt={`Coco, a teacup poodle, in a clean backyard in ${config.primaryCity}, ${config.primaryState}`}
               width="900"
               height="1350"
               loading="eager"
               fetchpriority="high"
-              style={{ objectPosition: "center 22%" }}
+              style={{ objectPosition: "center 28%" }}
             />
           </div>
         </div>
@@ -626,7 +626,7 @@ export default function TheYardKeepers() {
                 <img src={d.img} alt={`${d.name}, a ${d.size.toLowerCase()} ${d.breed}`} loading="lazy" style={{ objectPosition: d.pos }} />
                 <figcaption>
                   <span className="yk-dogsize">{d.size}</span>
-                  <b>{d.name}</b>
+                  <b>Meet {d.name}</b>
                   <span className="yk-dogbreed">{d.breed}</span>
                 </figcaption>
               </figure>
