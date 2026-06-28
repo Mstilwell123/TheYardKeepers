@@ -121,23 +121,6 @@ export default function TheYardKeepers() {
     service.unsure && "Not sure yet",
   ].filter(Boolean);
 
-  // Fallback when no form endpoint is configured: open a pre-filled email.
-  const sendViaEmail = () => {
-    const subject = encodeURIComponent(`Quote request — ${form.name || "new lead"}`);
-    const body = encodeURIComponent(
-      [
-        `Name: ${form.name}`,
-        `Phone: ${form.phone}`,
-        `Email: ${form.email || "—"}`,
-        `Neighborhood/address: ${form.area || "—"}`,
-        `Services: ${selectedServiceLabels.join(", ") || "—"}`,
-        "",
-        `Message: ${form.message || "—"}`,
-      ].join("\n")
-    );
-    window.location.href = `mailto:${config.email}?subject=${subject}&body=${body}`;
-  };
-
   const handleSubmit = async () => {
     const anyService = Object.values(service).some(Boolean);
     if (!form.name.trim() || !form.phone.trim()) {
@@ -174,8 +157,7 @@ export default function TheYardKeepers() {
         setSubmitting(false);
       }
     } else {
-      sendViaEmail();
-      setSubmitted(true);
+      setError(`Please call or text ${config.phoneDisplay} and I'll get you a quote right away.`);
     }
   };
 
@@ -953,7 +935,7 @@ export default function TheYardKeepers() {
             </div>
             <div className="yk-foot-contact">
               <a href={TEL}><Phone size={17} /> {config.phoneDisplay}</a>
-              <a href={`mailto:${config.email}`}><Mail size={17} /> {config.email}</a>
+              <a href="#quote"><Mail size={17} /> Request a free quote</a>
               <a href="#services"><MapPin size={17} /> {config.primaryCity}, {config.primaryState} · {config.comingSoonCity} from {config.comingSoonWhen}</a>
             </div>
           </div>

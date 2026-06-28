@@ -18,7 +18,8 @@ export const config = {
   // Phone is used for click-to-call. Use real digits.
   phoneDisplay: "(541) 999-6452", // ← shown to visitors
   phoneE164: "+15419996452", // ← used for tel: and sms: links (no spaces)
-  email: "hello@theyardkeepers.pet", // ← where quote requests should land
+  // No public email is shown on the site. Lead emails are routed in your
+  // Formspree dashboard (recipient + BCC live there, never in this code).
 
   // ── Service area (drives the headline + SEO) ─────────────────────────
   primaryCity: "Florence",

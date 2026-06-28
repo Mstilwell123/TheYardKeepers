@@ -8,21 +8,21 @@ None of this requires touching code.
 
 ## Part 1 — Lead notifications (Formspree) · ~3 min
 
-So every quote request hits your email/phone instantly.
+So every quote request hits the owner instantly — with no email address shown
+anywhere on the public site (the recipient lives only in Formspree).
 
-1. Go to https://formspree.io and sign up (free) with `stilwellmark@gmail.com`.
-2. Click **+ New form**. Name it "Yard Keepers quotes". Set the email it should
-   notify to your email (and you can add SMS later).
-3. Formspree gives you an endpoint that looks like:
+1. Go to https://formspree.io and sign up (free).
+2. Click **+ New form**. Name it "Yard Keepers quotes".
+3. Set the **notification recipient** to the owner's lead inbox, and add the
+   **second/BCC address** in the form's email settings. (These addresses are kept
+   here in Formspree only — never in the website code or this repo.)
+4. Formspree gives you an endpoint that looks like:
    `https://formspree.io/f/abcdwxyz`
-4. Open `the-yard-keepers/.env` and paste it after the `=`:
-   ```
-   VITE_FORM_ENDPOINT=https://formspree.io/f/abcdwxyz
-   ```
-5. Save. Done — you'll also paste this same value into Vercel in Part 3.
+5. Paste it into Vercel as the `VITE_FORM_ENDPOINT` environment variable (Part 3),
+   and into `the-yard-keepers/.env` for local testing.
 
-Until you do this, the form still works: it opens a pre-filled email to the
-address in `src/config.js`.
+The endpoint ID is safe to be public; the actual email addresses stay private
+inside your Formspree account.
 
 ---
 
