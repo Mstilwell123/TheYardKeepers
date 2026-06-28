@@ -768,13 +768,14 @@ export default function TheYardKeepers() {
       <section className="yk-sec">
         <div className="yk-wrap yk-founder yk-reveal">
           <div className="yk-founder-photo">
-            {/* ── REPLACE THIS PLACEHOLDER WITH THE OWNER PHOTO ──
-                Put a photo at public/owner.jpg and swap the block below for:
-                <img src="/owner.jpg" alt="Your Yard Keeper in Florence, OR" /> */}
-            <div className="ph">
-              <PawPrint size={40} />
-              <span>Owner photo coming soon</span>
-            </div>
+            <img
+              src="/owner.jpg"
+              alt={`${config.ownerName}, your Yard Keeper in ${config.primaryCity}, ${config.primaryState}`}
+              width="1258"
+              height="1979"
+              loading="lazy"
+              style={{ objectPosition: "center 20%" }}
+            />
           </div>
           <div>
             <div className="yk-kicker">Meet your Yard Keeper</div>

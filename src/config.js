@@ -10,7 +10,7 @@
 export const config = {
   // ── Business identity ────────────────────────────────────────────────
   businessName: "The Yard Keepers",
-  ownerName: "[Your Name]", // ← put your real first name (and last initial) here
+  ownerName: "Nyte De Leon",
   domain: "theyardkeepers.pet",
   url: "https://theyardkeepers.pet",
 
