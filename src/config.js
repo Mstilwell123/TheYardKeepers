@@ -11,7 +11,7 @@ export const config = {
   // ── Business identity ────────────────────────────────────────────────
   businessName: "The Yard Keepers",
   ownerName: "Nyte De Leon",
-  domain: "theyardkeepers.pet",
+  domain: "www.theyardkeepers.pet",
   url: "https://www.theyardkeepers.pet",
 
   // ── Contact ──────────────────────────────────────────────────────────
