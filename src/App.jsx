@@ -84,6 +84,13 @@ const FAQ = [
   },
 ];
 
+const DOGS = [
+  { img: "/dogs/dog-small.jpg", name: "Biscuit", breed: "Corgi", size: "Small", pos: "center 22%" },
+  { img: "/dogs/dog-medium.jpg", name: "Scout", breed: "Border Collie", size: "Medium", pos: "30% center" },
+  { img: "/dogs/dog-large.jpg", name: "Ranger", breed: "Golden Retriever", size: "Medium–large", pos: "center 32%" },
+  { img: "/dogs/dog-greatdane.jpg", name: "Duke", breed: "Great Dane", size: "Extra-large", pos: "center 18%" },
+];
+
 const TEL = `tel:${config.phoneE164}`;
 
 export default function TheYardKeepers() {
@@ -281,6 +288,18 @@ export default function TheYardKeepers() {
         .yk-card .yk-link:hover{gap:10px;color:var(--orange);}
         .yk-card .yk-link:focus-visible{outline:3px solid var(--orange);outline-offset:3px;border-radius:4px;}
 
+        /* dog size gallery */
+        .yk-dogs{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+        .yk-dogcard{margin:0;background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;
+          transition:transform .18s ease,box-shadow .18s ease;}
+        .yk-dogcard:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(24,19,16,.10);}
+        .yk-dogcard img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;}
+        .yk-dogcard figcaption{padding:14px 16px;display:flex;flex-direction:column;gap:1px;}
+        .yk-dogsize{align-self:flex-start;font-size:11px;font-weight:700;letter-spacing:.05em;
+          text-transform:uppercase;color:#fff;background:var(--orange);padding:3px 9px;border-radius:999px;margin-bottom:8px;}
+        .yk-dogcard b{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:18px;}
+        .yk-dogbreed{font-size:13px;color:var(--ink-soft);}
+
         /* steps */
         .yk-steps-sec{background:var(--ink);color:#fff;}
         .yk-steps-sec .yk-kicker{color:#ff7a45;}
@@ -468,6 +487,7 @@ export default function TheYardKeepers() {
           .yk-hero-grid{grid-template-columns:1fr;gap:24px;}
           .yk-hero-art{order:-1;max-width:380px;}
           .yk-cards{grid-template-columns:1fr;}
+          .yk-dogs{grid-template-columns:1fr 1fr;}
           .yk-steps{grid-template-columns:1fr 1fr;}
           .yk-founder{grid-template-columns:1fr;gap:26px;}
           .yk-founder-photo{max-width:300px;}
@@ -525,12 +545,13 @@ export default function TheYardKeepers() {
           </div>
           <div className="yk-hero-art">
             <img
-              src="/hero-dog.jpg"
-              alt={`A happy dog in a clean, freshly mowed backyard in ${config.primaryCity}, ${config.primaryState}`}
-              width="1200"
-              height="1100"
+              src="/dogs/dog-small.jpg"
+              alt={`Biscuit, a happy corgi, in a clean backyard in ${config.primaryCity}, ${config.primaryState}`}
+              width="900"
+              height="1350"
               loading="eager"
               fetchpriority="high"
+              style={{ objectPosition: "center 22%" }}
             />
           </div>
         </div>
@@ -586,6 +607,29 @@ export default function TheYardKeepers() {
                 <h3>{st.title}</h3>
                 <p>{st.body}</p>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* DOG SIZE GALLERY */}
+      <section className="yk-sec" style={{ paddingTop: 0 }}>
+        <div className="yk-wrap">
+          <div className="yk-sec-head yk-reveal">
+            <div className="yk-kicker">Every size welcome</div>
+            <h2>From pocket-sized to peak Great Dane.</h2>
+            <p>Big or small, every dog gets the same care — and pricing scales fairly with your pack.</p>
+          </div>
+          <div className="yk-dogs">
+            {DOGS.map((d) => (
+              <figure className="yk-dogcard yk-reveal" key={d.name}>
+                <img src={d.img} alt={`${d.name}, a ${d.size.toLowerCase()} ${d.breed}`} loading="lazy" style={{ objectPosition: d.pos }} />
+                <figcaption>
+                  <span className="yk-dogsize">{d.size}</span>
+                  <b>{d.name}</b>
+                  <span className="yk-dogbreed">{d.breed}</span>
+                </figcaption>
+              </figure>
             ))}
           </div>
         </div>
@@ -913,64 +957,5 @@ export default function TheYardKeepers() {
         <Phone size={18} /> Call now
       </a>
     </div>
-  );
-}
-
-/* Hero illustration — a tidy, sunny yard with a happy dog. On-brand, no stock photos. */
-function HeroArt() {
-  return (
-    <svg viewBox="0 0 460 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A clean, sunny backyard with a happy dog">
-      <defs>
-        <linearGradient id="ykSky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#FFF3EC" />
-          <stop offset="1" stopColor="#FBF8F4" />
-        </linearGradient>
-        <linearGradient id="ykGrass" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#E9F0DD" />
-          <stop offset="1" stopColor="#DCE7C9" />
-        </linearGradient>
-      </defs>
-      <rect x="0" y="0" width="460" height="420" rx="26" fill="url(#ykSky)" />
-      <circle cx="370" cy="92" r="40" fill="#D73F09" opacity="0.95" />
-      <g stroke="#D73F09" strokeWidth="5" strokeLinecap="round" opacity="0.8">
-        <line x1="370" y1="20" x2="370" y2="34" />
-        <line x1="430" y1="92" x2="444" y2="92" />
-        <line x1="412" y1="50" x2="422" y2="40" />
-        <line x1="412" y1="134" x2="422" y2="144" />
-      </g>
-      <path d="M0 300 Q230 270 460 300 L460 420 L0 420 Z" fill="url(#ykGrass)" />
-      <path d="M0 300 Q230 270 460 300" fill="none" stroke="#C7D6A8" strokeWidth="3" />
-      <g fill="#fff" stroke="#E2D9CF" strokeWidth="2">
-        <rect x="34" y="232" width="16" height="74" rx="3" />
-        <rect x="70" y="232" width="16" height="74" rx="3" />
-        <rect x="106" y="232" width="16" height="74" rx="3" />
-        <rect x="20" y="252" width="116" height="11" rx="3" />
-        <rect x="20" y="280" width="116" height="11" rx="3" />
-      </g>
-      <polygon points="42,232 50,222 58,232" fill="#fff" stroke="#E2D9CF" strokeWidth="2" />
-      <polygon points="78,232 86,222 94,232" fill="#fff" stroke="#E2D9CF" strokeWidth="2" />
-      <polygon points="114,232 122,222 130,232" fill="#fff" stroke="#E2D9CF" strokeWidth="2" />
-      <circle cx="408" cy="300" r="26" fill="#CBDDA6" />
-      <circle cx="388" cy="306" r="18" fill="#D6E4B8" />
-      <g transform="translate(196 214)">
-        <ellipse cx="56" cy="150" rx="58" ry="12" fill="#C7D6A8" opacity="0.6" />
-        <path d="M104 86 Q126 70 120 48" fill="none" stroke="#181310" strokeWidth="13" strokeLinecap="round" />
-        <rect x="34" y="78" width="74" height="52" rx="24" fill="#181310" />
-        <rect x="44" y="118" width="13" height="34" rx="6" fill="#181310" />
-        <rect x="86" y="118" width="13" height="34" rx="6" fill="#181310" />
-        <circle cx="36" cy="70" r="34" fill="#221A14" />
-        <path d="M14 46 Q4 70 22 80 L34 56 Z" fill="#181310" />
-        <ellipse cx="18" cy="78" rx="16" ry="12" fill="#3a322c" />
-        <circle cx="10" cy="74" r="4" fill="#181310" />
-        <circle cx="40" cy="62" r="5" fill="#fff" />
-        <circle cx="41" cy="63" r="2.6" fill="#181310" />
-        <rect x="50" y="92" width="30" height="9" rx="4" fill="#D73F09" />
-        <circle cx="65" cy="103" r="5" fill="#D73F09" />
-      </g>
-      <g fill="#D73F09">
-        <path d="M150 150 l4 10 10 4 -10 4 -4 10 -4 -10 -10 -4 10 -4 z" opacity="0.9" />
-        <path d="M300 180 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3 z" opacity="0.7" />
-      </g>
-    </svg>
   );
 }
