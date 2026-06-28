@@ -12,7 +12,7 @@ export const config = {
   businessName: "The Yard Keepers",
   ownerName: "Nyte De Leon",
   domain: "theyardkeepers.pet",
-  url: "https://theyardkeepers.pet",
+  url: "https://www.theyardkeepers.pet",
 
   // ── Contact ──────────────────────────────────────────────────────────
   // Phone is used for click-to-call. Use real digits.

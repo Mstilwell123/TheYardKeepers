@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://theyardkeepers.pet/sitemap.xml
+Sitemap: https://www.theyardkeepers.pet/sitemap.xml
