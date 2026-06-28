@@ -67,17 +67,39 @@ and the building (Vercel) are yours.
 
 ---
 
-## Part 4 — Point your domain · last, once
+## Part 4 — Connect your domain (GoDaddy) · last, once
 
-Only after the Vercel URL looks right:
+Do this only after the Vercel URL looks right. Domain is registered at GoDaddy.
 
-1. Confirm you've registered `theyardkeepers.pet` at a registrar (Namecheap,
-   Porkbun, Cloudflare, etc.).
-2. In Vercel: Project → **Settings → Domains** → add `theyardkeepers.pet`.
-3. Vercel shows the exact DNS records to add at your registrar (an A record and/or
-   CNAME). Add them. Propagation is usually minutes to a couple hours.
+### 4a. Add the domain in Vercel
+1. In your Vercel project: **Settings → Domains**.
+2. Type `theyardkeepers.pet` and click **Add**. Add `www.theyardkeepers.pet` too —
+   Vercel will set it to redirect to the main domain.
+3. Vercel shows the DNS records it wants. They're almost always:
+   - **A** record — Host/Name `@` → Value `76.76.21.21`
+   - **CNAME** record — Host/Name `www` → Value `cname.vercel-dns.com`
 
-Aim DNS at Vercel — never at a builder you might leave — so you only do this once.
+   Use whatever values Vercel actually displays (they can differ) — copy them exactly.
+
+### 4b. Add those records at GoDaddy
+1. Sign in at https://godaddy.com → top-right profile → **My Products**.
+2. Find `theyardkeepers.pet` → click the three dots / **DNS** → **Manage DNS**.
+3. Under **Records**:
+   - GoDaddy ships a default parked **A** record on Host `@`. Click the pencil to
+     **edit** it: set Value to `76.76.21.21`, Save. (Don't add a second `@` A
+     record — edit the existing one.)
+   - **Add** a record: Type `CNAME`, Host `www`, Value `cname.vercel-dns.com`, Save.
+   - If GoDaddy auto-added a `www` CNAME pointing somewhere else, edit that one
+     instead of adding a duplicate.
+4. Leave TTL at default (1 hour is fine).
+
+### 4c. Wait + verify
+- Back in Vercel → Domains, the domain shows **"Valid Configuration"** once it sees
+  the records — usually minutes, sometimes up to a couple hours.
+- Vercel issues the HTTPS certificate automatically. Then `https://theyardkeepers.pet`
+  is live.
+
+Point DNS at Vercel — never at a builder you might leave — so you only do this once.
 
 ---
 
