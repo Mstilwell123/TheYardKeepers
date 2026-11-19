@@ -105,6 +105,5 @@ Point DNS at Vercel — never at a builder you might leave — so you only do th
 
 ## After launch — keep it yours
 
-- Edit `src/config.js` for any price/phone/text change, commit, push → auto-deploys.
-- Add the owner name and photo (see README).
-- This stays one site when you expand to Corvallis in August — preserves your SEO.
+- Edit `src/config.js` for any price, phone, or town change, commit, push → auto-deploys.
+- The site serves Corvallis, Oregon. Nearby towns are the list in `src/config.js`.

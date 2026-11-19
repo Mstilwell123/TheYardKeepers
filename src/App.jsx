@@ -1,147 +1,199 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  Phone, Mail, MapPin, Check, Clock, ShieldCheck,
-  Camera, Truck, PawPrint, MessageCircle, ArrowRight, Dog, Footprints, Home, Star, GraduationCap,
+  Phone, MapPin, Check, Camera, PawPrint, ArrowRight, Menu, X,
 } from "lucide-react";
-import { config, YARD, WALKS } from "./config.js";
+import { config, PLANS, FIRST_CLEANUP, estimateQuote } from "./config.js";
 import { trackEvent } from "./analytics.js";
 
-/**
- * The Yard Keepers — single-file landing page.
- * All business details (name, phone, prices, service area) live in src/config.js.
- * Colors: Beaver Orange #D73F09 + warm near-black + white.
- */
-
-const SERVICES = [
-  {
-    id: "waste",
-    icon: PawPrint,
-    name: "Dog Waste Removal",
-    tag: "Most popular",
-    price: "from $80/mo",
-    cadence: "4 visits · weekly",
-    blurb:
-      "I scoop every corner, fence line, and under the bushes — then haul it away so it never sits in your bin. You get your backyard back.",
-    cta: "Start weekly service",
-  },
-  {
-    id: "sitting",
-    icon: Home,
-    name: "Dog Sitting & House Sitting",
-    tag: null,
-    price: "from $55/night",
-    cadence: "In your home · overnight or drop-in",
-    blurb:
-      "Going out of town? I care for your dog in your own home — overnight stays, or drop-in visits for feeding, potty breaks, and playtime. In-home only; overnight has a two-night minimum.",
-    cta: "Ask about sitting",
-  },
-  {
-    id: "walking",
-    icon: Footprints,
-    name: "Dog Walking",
-    tag: null,
-    price: "from $18",
-    cadence: "By request",
-    blurb:
-      "Midday walks or a daily routine — your dog gets exercise, fresh air, and attention while you're busy or at work.",
-    cta: "Ask about walks",
-  },
-];
-
-const STEPS = [
-  { icon: MessageCircle, title: "I text on the way", body: "You get a heads-up before I arrive — no surprises at the gate." },
-  { icon: Check, title: "I clean every inch", body: "Corners, fence lines, under bushes. I walk the whole yard twice." },
-  { icon: Camera, title: "Gate closed, photo sent", body: "I latch up and send a photo so you know it's done and secure." },
-  { icon: Truck, title: "Waste hauled away", body: "It leaves with me. Nothing left to fester in your trash bin." },
-];
-
-const PROMISES = [
-  { icon: Clock, label: "I respond within hours" },
-  { icon: ShieldCheck, label: "100% satisfaction guarantee" },
-  { icon: Check, label: "No contracts — cancel anytime" },
-  { icon: MapPin, label: "Locally owned" },
-];
-
-const FAQ = [
-  {
-    q: "How does billing work?",
-    a: "The weekly plan starts at $80/month for four visits (one dog); more dogs or twice-weekly visits cost a bit more. No contracts — pause or cancel anytime with a heads-up.",
-  },
-  {
-    q: "Do I need to be home?",
-    a: "Nope. As long as I have safe access to the yard, you don't have to be there. I'll text on the way and send a gate-closed photo when I'm done.",
-  },
-  {
-    q: "What if my yard is overgrown or snowed in?",
-    a: "If I genuinely can't see the waste, I can't get all of it — but I'll tell you straight and we'll sort out a plan. Honesty over excuses.",
-  },
-  {
-    q: "How does pet sitting work?",
-    a: "It all happens in your home, where your dog is most comfortable. Two options: overnight house sitting (from $55/night, two-night minimum) where I stay over, or drop-in visits (from $20) where I come by to feed, walk, and check on your dog. We sort out the details at a free meet-and-greet.",
-  },
-  {
-    q: "What about a nervous or protective dog?",
-    a: "Just let me know ahead of time. I'm happy to work around feeding or nap times, or have you secure your dog during the visit.",
-  },
-];
+const TEL = `tel:${config.phoneE164}`;
+const TOWNS = [config.primaryCity, ...config.nearbyAreas];
 
 const DOGS = [
-  { img: "/dogs/dog-poodle.jpg", name: "Coco", breed: "Teacup Poodle", size: "Small", pos: "center 30%" },
-  { img: "/dogs/dog-medium.jpg", name: "Scout", breed: "Border Collie", size: "Medium", pos: "30% center" },
-  { img: "/dogs/dog-large.jpg", name: "Ranger", breed: "Golden Retriever", size: "Medium–large", pos: "center 32%" },
+  { img: "/dogs/dog-poodle.jpg", name: "Coco", breed: "Teacup poodle", size: "Small", pos: "center 30%" },
+  { img: "/dogs/dog-medium.jpg", name: "Scout", breed: "Border collie", size: "Medium", pos: "30% center" },
+  { img: "/dogs/dog-large.jpg", name: "Ranger", breed: "Golden retriever", size: "Medium–large", pos: "center 32%" },
   { img: "/dogs/dog-greatdane.jpg", name: "Duke", breed: "Great Dane", size: "Extra-large", pos: "center 18%" },
 ];
 
-const TEL = `tel:${config.phoneE164}`;
+const STEPS = [
+  {
+    n: "01",
+    title: "See the price",
+    body: "Choose the dogs, how often, and whether you want walks. The number updates on this page before you send anything.",
+  },
+  {
+    n: "02",
+    title: "Nyte confirms the visit",
+    body: "He texts before he arrives, checks the gate, and does the work whether or not you are home.",
+  },
+  {
+    n: "03",
+    title: "The yard is yours again",
+    body: "Waste leaves with him. You get a photo when the gate is closed. Pause or cancel whenever you need to.",
+  },
+];
+
+const TRUST = [
+  {
+    title: "One person, in Corvallis",
+    body: `${config.ownerName} studies pre-med at ${config.school} and does the visits himself. The Yard Keepers is his business. It is not a university service, and the school does not sponsor it.`,
+  },
+  {
+    title: "A photo when he leaves",
+    body: "He latches the gate and sends a picture, so you can see the visit happened. You do not have to take his word for a closed gate.",
+  },
+  {
+    title: "Careful, because he is trained for it",
+    body: "Nyte is a licensed CNA. The habits from that work — show up, pay attention, do the careful thing — are how he looks after your dog.",
+  },
+  {
+    title: "Haul-away is part of the plan",
+    body: "The waste does not sit in your bin. It leaves with him on every yard visit that is part of a recurring plan.",
+  },
+];
+
+function faqItems() {
+  const weekly = PLANS.weekly;
+  const walks = PLANS.weeklyWalks;
+  const twice = PLANS.twice;
+  const towns = config.nearbyAreas.join(", ");
+  return [
+    {
+      q: `How much does dog poop scooping cost in ${config.primaryCity}?`,
+      a: `${weekly.name} is $${weekly.prices[1]}/month for one dog and $${weekly.prices[2]}/month for two, with ${weekly.visitsPerMonth} visits. ${twice.name} is $${twice.prices[1]}/month for one dog, with ${twice.visitsPerMonth} visits. ${walks.name} is a $${walks.prices[1]}/month launch offer for one dog: the weekly scoop plus ${walks.walksPerMonth} walks of ${walks.walkMinutes} minutes. ${FIRST_CLEANUP.label}. Three or more dogs, two dogs on a twice-weekly plan, and pet sitting are quoted individually.`,
+    },
+    {
+      q: "What happens on a yard visit?",
+      a: "Nyte texts before he arrives, scoops the yard, hauls the waste away, latches the gate, and sends a photo. You do not need to be home if he can get into the yard safely.",
+    },
+    {
+      q: "Is the first cleanup free?",
+      a: FIRST_CLEANUP.terms,
+    },
+    {
+      q: "Do you walk dogs and pet sit in Corvallis, OR?",
+      a: `Yes. Dog walking in ${config.primaryCity} is part of the ${walks.name} launch offer, or you can ask for walks on their own. In-home pet sitting — overnight or drop-in — is quoted after a meet-and-greet. There is no published sitting price.`,
+    },
+    {
+      q: "Which towns do you cover?",
+      a: `${config.primaryCity}, ${config.primaryStateName} is the home route. Nearby towns on the current list are ${towns}. If you are just outside that list, send a request and Nyte will say whether he can take the street.`,
+    },
+    {
+      q: "What if my gate is locked, or my dog is nervous?",
+      a: "Tell him when you request the quote. He can use a code you share, or you can put a protective dog inside for the visit. He would rather know ahead than guess at the gate.",
+    },
+    {
+      q: "What if the yard is overgrown or the weather is bad?",
+      a: "If he cannot see the waste, he cannot pretend he got all of it. He will tell you, and you will sort out a plan. He works in ordinary Oregon rain. If a visit has to move, he will say so the same day.",
+    },
+    {
+      q: "Can I cancel?",
+      a: "Yes. There is no contract. Give him a heads-up and the recurring plan stops. He would rather you leave cleanly than stay stuck.",
+    },
+  ];
+}
+
+const FAQ = faqItems();
+
+function money(amount) {
+  return `$${amount}`;
+}
+
+const EMPTY_FORM = { name: "", phone: "", email: "", area: "", message: "" };
 
 export default function TheYardKeepers() {
-  const [service, setService] = useState({ waste: false, sitting: false, walking: false, unsure: false });
-  const [form, setForm] = useState({ name: "", phone: "", email: "", area: "", message: "" });
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [quote, setQuote] = useState({
+    dogs: 1,
+    frequency: "weekly",
+    addWalks: false,
+    service: "yard",
+  });
+  const [form, setForm] = useState(EMPTY_FORM);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [openFaq, setOpenFaq] = useState(null);
-  const [freq, setFreq] = useState("weekly");
-  const [dogs, setDogs] = useState(1);
-  const yardPrice = YARD.prices[freq][dogs];
-  const perVisit = freq === "weekly" ? yardPrice / 4 : freq === "twice" ? yardPrice / 8 : yardPrice / 2;
-  const formRef = useRef(null);
 
-  const scrollToForm = (preselect) => {
-    if (preselect) setService((s) => ({ ...s, [preselect]: true }));
-    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const yardEstimate = estimateQuote(quote);
+  const isSitting = quote.service === "sitting";
+  const estimate = isSitting
+    ? {
+        priced: false,
+        name: PLANS.sitting.name,
+        note: "In-home sitting is quoted after Nyte knows the dogs, the dates, and whether you need an overnight stay.",
+      }
+    : yardEstimate;
+
+  useEffect(() => {
+    const nodes = document.querySelectorAll(".yk-fade");
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((entry) => {
+        if (entry.isIntersecting) entry.target.classList.add("yk-in");
+      }),
+      { threshold: 0.12 }
+    );
+    nodes.forEach((node) => io.observe(node));
+    return () => io.disconnect();
+  }, []);
+
+  const go = (id) => {
+    setMenuOpen(false);
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const toggleService = (key) => setService((s) => ({ ...s, [key]: !s[key] }));
-  const update = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
-
-  const selectedServiceLabels = [
-    service.waste && "Weekly waste removal",
-    service.sitting && "Pet sitting",
-    service.walking && "Dog walking",
-    service.unsure && "Not sure yet",
-  ].filter(Boolean);
-
-  const handleSubmit = async () => {
-    const anyService = Object.values(service).some(Boolean);
-    if (!form.name.trim() || !form.phone.trim()) {
-      setError("Please add your name and phone so I can reach you.");
+  const selectPlan = (planId) => {
+    if (planId === "sitting") {
+      setQuote((q) => ({ ...q, service: "sitting" }));
+      go("contact");
       return;
     }
-    if (!anyService) {
-      setError("Pick at least one service you're interested in.");
+    if (planId === "weekly-walks") {
+      setQuote({ dogs: 1, frequency: "weekly", addWalks: true, service: "yard" });
+    } else if (planId === "twice") {
+      setQuote({ dogs: 1, frequency: "twice", addWalks: false, service: "yard" });
+    } else {
+      setQuote({ dogs: 1, frequency: "weekly", addWalks: false, service: "yard" });
+    }
+    go("quote");
+  };
+
+  const setDogs = (dogs, service) => setQuote((q) => ({ ...q, dogs, ...(service ? { service } : {}) }));
+  const setFrequency = (frequency, service) => setQuote((q) => ({ ...q, frequency, ...(service ? { service } : {}) }));
+  const setWalks = (addWalks, service) => setQuote((q) => ({ ...q, addWalks, ...(service ? { service } : {}) }));
+
+  const quoteSummary = () => {
+    if (isSitting) return `${PLANS.sitting.name} — ask for a quote`;
+    if (!estimate.priced) return `${estimate.name} — ask for a quote`;
+    const dogs = quote.dogs === 1 ? "1 dog" : "2 dogs";
+    const walks = quote.addWalks ? " · two 30-minute walks" : "";
+    return `${estimate.name} · ${dogs}${walks} · ${money(estimate.amount)}/month`;
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (!form.name.trim() || !form.phone.trim()) {
+      setError("Add your name and phone so Nyte can reach you.");
       return;
     }
     setError("");
 
     const payload = {
-      ...form,
-      services: selectedServiceLabels.join(", "),
+      name: form.name.trim(),
+      phone: form.phone.trim(),
+      email: form.email.trim(),
+      area: form.area.trim(),
+      message: form.message.trim(),
+      services: isSitting ? "In-home pet sitting" : quoteSummary(),
+      service: isSitting ? "sitting" : "yard",
+      plan: estimate.name,
+      dogs: String(quote.dogs === 3 ? "3+" : quote.dogs),
+      frequency: quote.frequency,
+      addWalks: quote.addWalks ? "yes" : "no",
+      quotedMonthly: !isSitting && estimate.priced ? String(estimate.amount) : "custom",
+      quoteDetail: quoteSummary(),
       source: "theyardkeepers.pet",
     };
 
-    // If a form endpoint is configured (Formspree / Web3Forms), POST to it for
-    // instant email/SMS notification. Otherwise fall back to a pre-filled email.
     if (config.formEndpoint) {
       setSubmitting(true);
       try {
@@ -151,807 +203,628 @@ export default function TheYardKeepers() {
           body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error("Bad response");
-        trackEvent("quote_submitted", { services: selectedServiceLabels.join(", ") });
+        trackEvent("quote_submitted", { services: payload.services });
         setSubmitted(true);
       } catch {
-        setError("Something went wrong sending that. Please call or text me instead — I'd love to help.");
+        setError(`Something went wrong sending that. Call or text ${config.phoneDisplay} and Nyte will help.`);
       } finally {
         setSubmitting(false);
       }
     } else {
-      setError(`Please call or text ${config.phoneDisplay} and I'll get you a quote right away.`);
+      setError(`Call or text ${config.phoneDisplay} and Nyte will get you a quote right away.`);
     }
   };
 
-  // light scroll-reveal
-  useEffect(() => {
-    const els = document.querySelectorAll(".yk-reveal");
-    const io = new IntersectionObserver(
-      (entries) => entries.forEach((en) => en.isIntersecting && en.target.classList.add("yk-in")),
-      { threshold: 0.12 }
-    );
-    els.forEach((el) => io.observe(el));
-    return () => io.disconnect();
-  }, []);
-
-  const cityLine = `${config.primaryCity}, ${config.primaryState}`;
+  const perVisitLabel = estimate.priced && estimate.perVisit && Number.isInteger(estimate.perVisit)
+    ? `${money(estimate.perVisit)}/visit · ${estimate.visits} visits/month`
+    : estimate.priced
+      ? `${estimate.visits} visits/month`
+      : null;
 
   return (
-    <div className="yk-root">
+    <div className="yk">
       <style>{`
-        .yk-root{
-          --orange:#D73F09; --orange-deep:#B23206; --orange-soft:#FBE3D7;
-          --ink:#181310; --ink-2:#221A14; --ink-soft:#4b423b;
-          --paper:#FBF8F4; --white:#ffffff; --line:rgba(24,19,16,.12);
-          font-family:'Plus Jakarta Sans',system-ui,sans-serif; color:var(--ink);
-          background:var(--paper); line-height:1.55; -webkit-font-smoothing:antialiased;
+        .yk{
+          --orange:#D73F09; --black:#000; --paper:#F6F4F0; --white:#fff;
+          --muted:rgba(0,0,0,.64); --line:rgba(0,0,0,.12); --soft:rgba(255,255,255,.72);
+          font-family:Outfit,system-ui,sans-serif; color:var(--black); background:var(--paper);
+          line-height:1.55; -webkit-font-smoothing:antialiased;
         }
-        .yk-root *{box-sizing:border-box;}
-        .yk-root h1,.yk-root h2,.yk-root h3,.yk-root .yk-display{
-          font-family:'Plus Jakarta Sans',sans-serif; line-height:1.04;
-          letter-spacing:-.02em; margin:0;
-        }
-        .yk-wrap{max-width:1080px;margin:0 auto;padding:0 22px;}
-        .yk-orange{color:var(--orange);}
+        .yk *{box-sizing:border-box;}
+        .yk h1,.yk h2,.yk h3,.yk .serif{font-family:"Source Serif 4",Georgia,serif; font-weight:560; letter-spacing:-.02em; margin:0;}
+        .yk a{color:inherit;}
+        .yk-wrap{max-width:1120px; margin:0 auto; padding:0 24px;}
+        .yk-kicker{font-size:12px; font-weight:650; letter-spacing:.16em; text-transform:uppercase; color:var(--orange); margin:0 0 12px;}
+        .yk-skip{position:absolute; left:12px; top:-40px; background:var(--black); color:#fff; padding:8px 12px; z-index:80;}
+        .yk-skip:focus{top:12px;}
 
-        /* nav */
-        .yk-nav{position:sticky;top:0;z-index:40;background:rgba(251,248,244,.86);
-          backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
-        .yk-nav-in{display:flex;align-items:center;justify-content:space-between;height:64px;}
-        .yk-logo{display:flex;align-items:center;gap:9px;font-family:'Plus Jakarta Sans',sans-serif;
-          font-weight:800;font-size:18px;letter-spacing:-.02em;}
-        .yk-logo-mark{width:30px;height:30px;border-radius:8px;background:var(--orange);
-          display:grid;place-items:center;color:#fff;flex:none;}
-        .yk-nav-actions{display:flex;align-items:center;gap:10px;}
-        .yk-nav-call{display:inline-flex;align-items:center;gap:7px;font-weight:600;font-size:15px;
-          color:var(--ink);text-decoration:none;padding:9px 14px;border-radius:999px;}
-        .yk-nav-call:hover{color:var(--orange);}
-        .yk-btn{font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:15px;border:none;
-          cursor:pointer;border-radius:999px;padding:12px 20px;display:inline-flex;
-          align-items:center;gap:8px;transition:transform .15s ease,background .15s ease;text-decoration:none;}
+        .yk-header{position:sticky; top:0; z-index:40; background:rgba(246,244,240,.94); backdrop-filter:blur(10px); border-bottom:1px solid var(--line);}
+        .yk-nav{display:flex; align-items:center; justify-content:space-between; min-height:72px; gap:16px;}
+        .yk-brand{display:flex; align-items:center; gap:10px; text-decoration:none; font-weight:700; letter-spacing:-.02em;}
+        .yk-mark{width:32px; height:32px; border-radius:8px; background:var(--orange); color:#fff; display:grid; place-items:center; flex:none;}
+        .yk-links{display:flex; align-items:center; gap:28px; list-style:none; margin:0; padding:0; font-size:14px; font-weight:550;}
+        .yk-links a{text-decoration:none;}
+        .yk-links a:hover{color:var(--orange);}
+        .yk-phone{display:inline-flex; align-items:center; gap:8px; text-decoration:none; font-size:14px; font-weight:650; color:var(--orange);}
+        .yk-phone:hover{color:var(--black);}
+        .yk-menu-btn{display:none; border:0; background:transparent; padding:8px; cursor:pointer;}
+        .yk-drawer{display:none;}
+
+        .yk-hero{padding:72px 0 28px;}
+        .yk-hero-grid{display:grid; grid-template-columns:1.05fr .95fr; gap:48px; align-items:center;}
+        .yk-hero h1{font-size:clamp(46px,6vw,76px); line-height:1.02; margin-bottom:22px;}
+        .yk-hero h1 span{color:var(--orange);}
+        .yk-lead{font-size:18px; color:var(--muted); max-width:42ch; margin:0 0 28px;}
+        .yk-actions{display:flex; flex-wrap:wrap; gap:12px;}
+        .yk-btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; border-radius:12px; border:1.5px solid transparent; font-family:inherit; font-weight:650; font-size:15px; padding:14px 22px; cursor:pointer; text-decoration:none; transition:transform .15s ease, background .15s ease;}
         .yk-btn:hover{transform:translateY(-1px);}
-        .yk-btn:focus-visible{outline:3px solid var(--orange);outline-offset:2px;}
-        .yk-btn-primary{background:var(--orange);color:#fff;}
-        .yk-btn-primary:hover{background:var(--orange-deep);}
-        .yk-btn-ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line);}
-        .yk-btn-ghost:hover{border-color:var(--ink);}
-        .yk-nav .yk-btn{padding:9px 16px;}
+        .yk-btn:focus-visible,.yk-chip:focus-visible,.yk-menu-btn:focus-visible,summary:focus-visible,.yk-input:focus-visible{outline:3px solid var(--orange); outline-offset:2px;}
+        .yk-btn-orange{background:var(--orange); color:#fff;}
+        .yk-btn-orange:hover{background:#b83408;}
+        .yk-btn-black{background:var(--black); color:#fff;}
+        .yk-btn-ghost{background:transparent; color:var(--black); border-color:rgba(0,0,0,.22);}
+        .yk-btn-ghost:hover{border-color:var(--black);}
+        .yk-btn[disabled]{opacity:.65; cursor:default; transform:none;}
+        .yk-fine{display:flex; align-items:center; gap:8px; margin:16px 0 0; font-size:13px; color:rgba(0,0,0,.55);}
+        .yk-hero-photo{position:relative; border-radius:16px; overflow:hidden; aspect-ratio:4/3; background:#ddd;}
+        .yk-hero-photo img{width:100%; height:100%; object-fit:cover; display:block;}
+        .yk-hero-cap{position:absolute; left:0; right:0; bottom:0; background:rgba(0,0,0,.9); color:#fff; padding:14px 18px; font-size:14px; font-weight:550;}
 
-        /* hero */
-        .yk-hero{padding:54px 0 30px;}
-        .yk-hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center;}
-        .yk-eyebrow{display:inline-flex;align-items:center;gap:7px;font-weight:600;font-size:13px;
-          text-transform:uppercase;letter-spacing:.08em;color:var(--orange);
-          background:var(--orange-soft);padding:6px 13px;border-radius:999px;margin-bottom:20px;}
-        .yk-hero h1{font-size:clamp(38px,6vw,62px);font-weight:800;}
-        .yk-hero p.lead{font-size:18px;color:var(--ink-soft);margin:18px 0 8px;max-width:34ch;}
-        .yk-price-chip{display:inline-flex;align-items:baseline;gap:8px;margin:18px 0 24px;
-          background:var(--ink);color:#fff;border-radius:14px;padding:12px 18px;}
-        .yk-price-chip b{font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;}
-        .yk-price-chip span{font-size:13px;color:#d8cfc7;}
-        .yk-hero-cta{display:flex;gap:12px;flex-wrap:wrap;}
-        .yk-hero-art{position:relative;}
-        .yk-hero-art svg{width:100%;height:auto;display:block;
-          filter:drop-shadow(0 24px 40px rgba(24,19,16,.14));}
-        .yk-hero-art img{width:100%;height:auto;display:block;border-radius:26px;
-          object-fit:cover;aspect-ratio:12/11;box-shadow:0 24px 44px rgba(24,19,16,.18);}
+        .yk-section{padding:88px 0;}
+        .yk-section h2{font-size:clamp(36px,4.5vw,52px); line-height:1.08;}
+        .yk-white{background:var(--white);}
+        .yk-black{background:var(--black); color:#fff;}
+        .yk-black .yk-kicker{color:#ffb088;}
+        .yk-steps{display:grid; grid-template-columns:repeat(3,1fr); gap:36px; margin-top:48px;}
+        .yk-step-top{display:flex; align-items:center; gap:14px; margin-bottom:14px;}
+        .yk-num{font-family:"Source Serif 4",Georgia,serif; font-size:40px; font-weight:450; color:rgba(0,0,0,.28);}
+        .yk-step h3{font-size:28px; margin-bottom:10px;}
+        .yk-step p,.yk-trust p,.yk-area-copy{color:var(--muted); margin:0;}
 
-        /* promise strip */
-        .yk-strip{background:var(--ink);color:#fff;}
-        .yk-strip-in{display:flex;flex-wrap:wrap;gap:10px 30px;justify-content:center;padding:16px 22px;}
-        .yk-strip-item{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;}
-        .yk-strip-item svg{color:var(--orange);flex:none;}
+        .yk-why-head{display:grid; grid-template-columns:1.4fr .6fr; gap:36px; align-items:end; margin-bottom:48px;}
+        .yk-why-head p{color:var(--soft); max-width:46ch; margin:16px 0 0;}
+        .yk-owner{border-radius:16px; overflow:hidden; aspect-ratio:4/5; background:#222;}
+        .yk-owner img{width:100%; height:100%; object-fit:cover; object-position:center 18%; display:block;}
+        .yk-trust{display:grid; grid-template-columns:repeat(4,1fr); gap:28px;}
+        .yk-trust article{border-top:1px solid rgba(255,255,255,.2); padding-top:22px;}
+        .yk-trust h3{font-size:26px; color:#fff; margin-bottom:10px;}
+        .yk-trust p{color:rgba(255,255,255,.72);}
+        .yk-trust svg{color:var(--orange); margin-bottom:14px;}
 
-        /* section scaffolding */
-        .yk-sec{padding:64px 0;}
-        .yk-sec-head{max-width:38ch;margin-bottom:36px;}
-        .yk-kicker{font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;
-          color:var(--orange);margin-bottom:12px;}
-        .yk-sec h2{font-size:clamp(28px,4vw,40px);font-weight:800;}
-        .yk-sec-head p{color:var(--ink-soft);margin-top:14px;font-size:17px;}
+        .yk-plans{display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-top:40px;}
+        .yk-plan{position:relative; background:var(--white); border-radius:16px; padding:28px 22px; display:flex; flex-direction:column; gap:18px; border:1px solid transparent;}
+        .yk-plan.pop{background:var(--black); color:#fff;}
+        .yk-tag{position:absolute; top:-11px; left:20px; background:var(--orange); color:#fff; font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; border-radius:999px; padding:4px 10px;}
+        .yk-plan-name{font-size:13px; font-weight:650; letter-spacing:.04em; text-transform:uppercase; opacity:.62; margin:0 0 8px;}
+        .yk-price{font-family:"Source Serif 4",Georgia,serif; font-size:44px; line-height:1; display:flex; align-items:baseline; flex-wrap:wrap; gap:8px;}
+        .yk-price small{font-family:Outfit,sans-serif; font-size:14px; font-weight:500; opacity:.6;}
+        .yk-subprice{color:var(--orange); font-size:14px; font-weight:650; margin:8px 0 0;}
+        .yk-plan.pop .yk-subprice{color:#ffb088;}
+        .yk-plan ul{list-style:none; margin:0; padding:0; display:grid; gap:10px;}
+        .yk-plan li{display:flex; gap:8px; align-items:flex-start; font-size:14px;}
+        .yk-plan li svg{flex:none; margin-top:2px; color:var(--orange);}
+        .yk-plan .yk-btn{margin-top:auto; width:100%;}
+        .yk-note{margin:22px 0 0; text-align:center; color:var(--muted); font-size:14px;}
 
-        /* services */
-        .yk-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
-        .yk-card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:26px;
-          display:flex;flex-direction:column;transition:transform .18s ease,box-shadow .18s ease;}
-        .yk-card:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(24,19,16,.10);}
-        .yk-card.hero{border:2px solid var(--orange);box-shadow:0 14px 36px rgba(215,63,9,.12);}
-        .yk-card-icon{width:48px;height:48px;border-radius:12px;background:var(--orange-soft);
-          color:var(--orange);display:grid;place-items:center;margin-bottom:18px;}
-        .yk-card.hero .yk-card-icon{background:var(--orange);color:#fff;}
-        .yk-tag{align-self:flex-start;font-size:11px;font-weight:700;letter-spacing:.06em;
-          text-transform:uppercase;color:#fff;background:var(--orange);padding:4px 10px;
-          border-radius:999px;margin-bottom:14px;}
-        .yk-card h3{font-size:21px;font-weight:700;margin-bottom:4px;}
-        .yk-card .cad{font-size:13px;color:var(--ink-soft);font-weight:600;margin-bottom:12px;}
-        .yk-card .cad b{color:var(--orange);font-family:'Plus Jakarta Sans',sans-serif;font-size:18px;}
-        .yk-card p{font-size:15px;color:var(--ink-soft);flex:1;margin-bottom:20px;}
-        .yk-card .yk-link{background:none;border:none;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;
-          font-weight:600;font-size:15px;color:var(--ink);display:inline-flex;align-items:center;
-          gap:6px;padding:0;transition:gap .15s ease,color .15s ease;}
-        .yk-card .yk-link:hover{gap:10px;color:var(--orange);}
-        .yk-card .yk-link:focus-visible{outline:3px solid var(--orange);outline-offset:3px;border-radius:4px;}
+        .yk-quote{max-width:680px; margin:0 auto; text-align:center;}
+        .yk-calc{text-align:left; background:#fff; border:1px solid var(--line); border-radius:16px; padding:28px; margin-top:28px;}
+        .yk-field-label{display:block; font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:rgba(0,0,0,.5); margin:0 0 10px;}
+        .yk-chips{display:flex; flex-wrap:wrap; gap:10px; margin-bottom:22px;}
+        .yk-chip{min-width:108px; border-radius:12px; border:1.5px solid rgba(0,0,0,.16); background:var(--paper); color:var(--black); font-family:inherit; font-weight:600; font-size:14px; padding:12px 14px; cursor:pointer;}
+        .yk-chip small{display:block; font-weight:500; font-size:11px; color:rgba(0,0,0,.5); margin-top:2px;}
+        .yk-chip.on{background:var(--black); color:#fff; border-color:var(--black);}
+        .yk-chip.on small{color:rgba(255,255,255,.7);}
+        .yk-result{border-top:1px solid var(--line); padding-top:22px; display:flex; justify-content:space-between; gap:18px; align-items:flex-end; flex-wrap:wrap;}
+        .yk-result-price{font-family:"Source Serif 4",Georgia,serif; font-size:56px; line-height:.95;}
+        .yk-result-price small{font-family:Outfit,sans-serif; font-size:14px; margin-left:8px; color:var(--muted);}
+        .yk-result p{margin:6px 0 0; color:var(--orange); font-weight:650; font-size:14px;}
+        .yk-legal{margin:12px 0 0; font-size:12px; color:rgba(0,0,0,.48);}
 
-        /* dog size gallery */
-        .yk-dogs{display:grid;grid-template-columns:repeat(4,minmax(0,180px));gap:16px;justify-content:center;}
-        .yk-dogcard{margin:0;background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;
-          transition:transform .18s ease,box-shadow .18s ease;}
-        .yk-dogcard:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(24,19,16,.10);}
-        .yk-dogcard img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;}
-        .yk-dogcard figcaption{padding:12px 14px;display:flex;flex-direction:column;gap:1px;}
-        .yk-dogsize{align-self:flex-start;font-size:10px;font-weight:700;letter-spacing:.05em;
-          text-transform:uppercase;color:#fff;background:var(--orange);padding:3px 8px;border-radius:999px;margin-bottom:7px;}
-        .yk-dogcard b{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:16px;}
-        .yk-dogbreed{font-size:12px;color:var(--ink-soft);}
+        .yk-towns{display:flex; flex-wrap:wrap; gap:10px; margin:22px 0;}
+        .yk-town{background:var(--paper); border-radius:12px; padding:12px 16px; font-size:14px; font-weight:650;}
+        .yk-town.home{background:var(--black); color:#fff;}
+        .yk-dogs{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:28px;}
+        .yk-dog{margin:0; background:#fff; border-radius:14px; overflow:hidden; border:1px solid var(--line);}
+        .yk-dog img{width:100%; aspect-ratio:1; object-fit:cover; display:block;}
+        .yk-dog figcaption{padding:12px 14px;}
+        .yk-dog b{display:block;}
+        .yk-dog span{color:var(--muted); font-size:13px;}
 
-        /* steps */
-        .yk-steps-sec{background:var(--ink);color:#fff;}
-        .yk-steps-sec .yk-kicker{color:#ff7a45;}
-        .yk-steps-sec h2{color:#fff;}
-        .yk-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:8px;}
-        .yk-step{background:var(--ink-2);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:24px;}
-        .yk-step-n{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:14px;
-          color:var(--orange);margin-bottom:14px;letter-spacing:.04em;}
-        .yk-step-ico{width:42px;height:42px;border-radius:11px;background:rgba(215,63,9,.18);
-          color:#ff8254;display:grid;place-items:center;margin-bottom:14px;}
-        .yk-step h3{font-size:17px;font-weight:700;margin-bottom:6px;color:#fff;}
-        .yk-step p{font-size:14px;color:#c9bfb6;}
+        .yk-faq{max-width:760px;}
+        .yk-faq details{border-bottom:1px solid var(--line); padding:18px 0;}
+        .yk-faq summary{display:flex; justify-content:space-between; gap:16px; align-items:center; cursor:pointer; font-weight:650; list-style:none;}
+        .yk-faq summary::-webkit-details-marker{display:none;}
+        .yk-faq summary svg{flex:none; color:var(--orange); transition:transform .2s ease;}
+        .yk-faq details[open] summary svg{transform:rotate(45deg);}
+        .yk-faq details p{margin:12px 0 0; color:var(--muted); max-width:68ch;}
 
-        /* founder */
-        .yk-founder{display:grid;grid-template-columns:.8fr 1.2fr;gap:44px;align-items:center;}
-        .yk-founder-photo{aspect-ratio:4/5;border-radius:22px;overflow:hidden;background:
-          linear-gradient(150deg,var(--orange-soft),#fff);border:1px solid var(--line);
-          display:grid;place-items:center;text-align:center;color:var(--orange);position:relative;}
-        .yk-founder-photo img{width:100%;height:100%;object-fit:cover;}
-        .yk-founder-photo .ph{display:grid;place-items:center;gap:10px;padding:20px;}
-        .yk-founder-photo .ph span{font-size:13px;font-weight:600;color:var(--ink-soft);}
-        .yk-founder blockquote{font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;
-          font-size:clamp(20px,2.6vw,27px);line-height:1.3;margin:0 0 18px;letter-spacing:-.01em;}
-        .yk-founder p{color:var(--ink-soft);font-size:16px;margin:0 0 12px;}
-        .yk-founder .sig{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;
-          color:var(--ink);font-size:18px;margin-top:18px;}
-        .yk-creds{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;}
-        .yk-creds span{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;
-          color:var(--ink);background:var(--orange-soft);padding:7px 13px;border-radius:999px;}
-        .yk-creds svg{color:var(--orange);flex:none;}
+        .yk-contact{display:grid; grid-template-columns:.9fr 1.1fr; gap:48px; align-items:start;}
+        .yk-contact-side p{color:var(--muted); max-width:36ch;}
+        .yk-contact-list{display:grid; gap:14px; margin-top:28px;}
+        .yk-contact-list a,.yk-contact-list p{display:flex; align-items:center; gap:10px; text-decoration:none; margin:0; color:var(--black); font-weight:600;}
+        .yk-contact-list svg{color:var(--orange);}
+        .yk-banner{display:flex; justify-content:space-between; gap:12px; background:#fff4ef; border:1px solid rgba(215,63,9,.25); border-radius:12px; padding:14px 16px; margin-bottom:16px;}
+        .yk-banner strong{display:block;}
+        .yk-banner a{color:var(--orange); font-size:13px; font-weight:700; white-space:nowrap;}
+        .yk-form{display:grid; gap:14px;}
+        .yk-row{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+        .yk-row-3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;}
+        .yk-input,.yk-form select,.yk-form textarea{width:100%; font:inherit; font-size:15px; padding:12px 14px; border-radius:12px; border:1.5px solid var(--line); background:var(--paper); color:var(--black);}
+        .yk-form textarea{min-height:96px; resize:vertical;}
+        .yk-error{background:#fff1ec; color:#8a2806; font-weight:650; font-size:14px; padding:10px 12px; border-radius:10px;}
+        .yk-success{background:#fff; border-radius:16px; padding:28px; text-align:center;}
+        .yk-success h3{font-size:32px; margin:8px 0;}
 
-        /* area */
-        .yk-area{display:flex;gap:18px;flex-wrap:wrap;}
-        .yk-area-card{flex:1;min-width:220px;background:#fff;border:1px solid var(--line);
-          border-radius:18px;padding:24px;display:flex;gap:14px;align-items:flex-start;}
-        .yk-area-card.now{border-color:var(--orange);}
-        .yk-area-pin{width:42px;height:42px;border-radius:11px;background:var(--orange-soft);
-          color:var(--orange);display:grid;place-items:center;flex:none;}
-        .yk-area-card.now .yk-area-pin{background:var(--orange);color:#fff;}
-        .yk-area-card h3{font-size:18px;font-weight:700;}
-        .yk-area-card .when{font-size:13px;font-weight:600;color:var(--orange);text-transform:uppercase;
-          letter-spacing:.06em;margin-bottom:4px;}
-        .yk-area-card p{font-size:14px;color:var(--ink-soft);margin-top:4px;}
-        .yk-area-towns{margin-top:18px;font-size:14px;color:var(--ink-soft);}
-        .yk-area-towns b{color:var(--ink);}
+        .yk-footer{background:var(--black); color:rgba(255,255,255,.72); padding:64px 0 28px;}
+        .yk-foot-grid{display:grid; grid-template-columns:1.4fr .8fr .8fr; gap:32px;}
+        .yk-footer h2{color:#fff; font-family:Outfit,sans-serif; font-size:22px; letter-spacing:-.03em;}
+        .yk-footer a{color:inherit; text-decoration:none;}
+        .yk-footer a:hover{color:#fff;}
+        .yk-foot-label{font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:rgba(255,255,255,.45); margin:0 0 12px;}
+        .yk-foot-bottom{border-top:1px solid rgba(255,255,255,.12); margin-top:32px; padding-top:16px; display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; font-size:13px; color:rgba(255,255,255,.45);}
 
-        /* pricing */
-        .ykx-subhead{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:20px;
-          display:flex;align-items:center;gap:9px;margin:0 0 18px;}
-        .ykx-subhead svg{color:var(--orange);}
-        .ykx-calc{background:#fff;border:1px solid var(--line);border-radius:20px;overflow:hidden;
-          display:grid;grid-template-columns:1.15fr .85fr;}
-        .ykx-controls{padding:26px;border-right:1px solid var(--line);}
-        .ykx-ctl-label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
-          color:var(--ink-soft);margin:0 0 11px;}
-        .ykx-seg{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px;}
-        .ykx-chip{cursor:pointer;border:1.5px solid var(--line);background:var(--paper);border-radius:12px;
-          padding:11px 15px;font-weight:600;font-size:14px;display:flex;flex-direction:column;gap:2px;
-          position:relative;transition:all .14s ease;font-family:'Plus Jakarta Sans',sans-serif;color:var(--ink);}
-        .ykx-chip small{font-weight:500;font-size:11px;color:var(--ink-soft);}
-        .ykx-chip.on{border-color:var(--orange);background:var(--orange-soft);}
-        .ykx-chip.on small{color:var(--orange-deep);}
-        .ykx-chip:focus-visible{outline:3px solid var(--orange);outline-offset:2px;}
-        .ykx-pop{position:absolute;top:-9px;right:-7px;background:var(--orange);color:#fff;font-size:9px;
-          font-weight:700;letter-spacing:.04em;padding:2px 7px;border-radius:999px;text-transform:uppercase;}
-        .ykx-dogrow{display:flex;gap:8px;}
-        .ykx-dogbtn{flex:1;cursor:pointer;border:1.5px solid var(--line);background:var(--paper);border-radius:12px;
-          padding:13px;font-weight:700;font-size:15px;display:flex;flex-direction:column;align-items:center;gap:4px;
-          transition:all .14s ease;font-family:'Plus Jakarta Sans',sans-serif;color:var(--ink);}
-        .ykx-dogbtn.on{border-color:var(--orange);background:var(--orange);color:#fff;}
-        .ykx-dogbtn:focus-visible{outline:3px solid var(--orange);outline-offset:2px;}
-        .ykx-result{padding:26px;display:flex;flex-direction:column;justify-content:center;background:var(--ink);color:#fff;}
-        .ykx-amt{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:56px;line-height:1;}
-        .ykx-amt small{font-size:19px;color:#cdbfb4;font-weight:600;}
-        .ykx-subr{color:#cdbfb4;font-size:14px;margin:8px 0 16px;}
-        .ykx-meta{font-size:13px;color:#a99c91;border-top:1px solid rgba(255,255,255,.12);padding-top:13px;}
-        .ykx-matrix{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);
-          border-radius:16px;overflow:hidden;margin-top:20px;font-size:15px;}
-        .ykx-matrix th,.ykx-matrix td{padding:13px 15px;text-align:center;border-bottom:1px solid var(--line);}
-        .ykx-matrix thead th{background:var(--ink);color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:14px;}
-        .ykx-matrix tbody th{text-align:left;font-weight:700;background:var(--paper);}
-        .ykx-matrix td{font-weight:600;}
-        .ykx-matrix tr:last-child td,.ykx-matrix tr:last-child th{border-bottom:none;}
-        .ykx-matrix .hl{color:var(--orange);}
-        .ykx-note{font-size:12px;color:var(--ink-soft);margin-top:14px;max-width:66ch;}
-        .ykx-note b{color:var(--orange);}
-        .ykx-care{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
-        .ykx-carecard{background:#fff;border:1px solid var(--line);border-radius:20px;padding:28px;display:flex;flex-direction:column;}
-        .ykx-caretag{align-self:flex-start;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
-          color:#fff;background:var(--orange);padding:4px 11px;border-radius:999px;margin-bottom:13px;}
-        .ykx-carecard h4{font-family:'Plus Jakarta Sans',sans-serif;font-size:21px;font-weight:800;margin:0 0 7px;}
-        .ykx-carecard .cdesc{font-size:14px;color:var(--ink-soft);margin:0 0 16px;}
-        .ykx-custom{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:34px;color:var(--ink);line-height:1;margin-bottom:16px;}
-        .ykx-custom small{display:block;font-size:13px;color:var(--ink-soft);font-weight:600;margin-top:5px;}
-        .ykx-carecard ul{list-style:none;padding:0;margin:0;display:grid;gap:9px;}
-        .ykx-carecard li{display:flex;gap:9px;font-size:14px;color:var(--ink-soft);align-items:flex-start;}
-        .ykx-carecard li svg{color:var(--orange);flex:none;margin-top:2px;}
-        .ykx-walks{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
-        .ykx-pcard{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:5px;position:relative;}
-        .ykx-pcard.on{border:2px solid var(--orange);}
-        .ykx-pcard .len{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:18px;}
-        .ykx-pcard .amt{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:32px;color:var(--ink);}
-        .ykx-pcard .desc{font-size:13px;color:var(--ink-soft);}
-        .ykx-guarantee{display:flex;align-items:center;gap:18px;background:var(--ink);color:#fff;border-radius:20px;
-          padding:26px 30px;margin-top:42px;flex-wrap:wrap;}
-        .ykx-guarantee h3{font-size:20px;font-weight:800;color:#fff;margin:0 0 4px;}
-        .ykx-guarantee p{color:#cdbfb4;font-size:14px;margin:0;}
-        .ykx-guar-txt{flex:1;min-width:200px;}
-        .ykx-guar-ico{width:52px;height:52px;border-radius:13px;background:var(--orange);color:#fff;
-          display:grid;place-items:center;flex:none;}
+        .yk-sticky{display:none;}
+        .yk-sticky.yk-hide{display:none !important;}
+        .yk-fade{opacity:0; transform:translateY(16px); transition:opacity .6s ease, transform .6s ease;}
+        .yk-in{opacity:1; transform:none;}
+        section, #quote, #contact{scroll-margin-top:84px;}
 
-        /* faq */
-        .yk-faq{max-width:760px;margin:0 auto;}
-        .yk-faq-item{border-bottom:1px solid var(--line);}
-        .yk-faq-q{width:100%;text-align:left;background:none;border:none;cursor:pointer;
-          padding:20px 0;display:flex;justify-content:space-between;align-items:center;gap:16px;
-          font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:18px;color:var(--ink);}
-        .yk-faq-q:focus-visible{outline:3px solid var(--orange);outline-offset:3px;}
-        .yk-faq-plus{color:var(--orange);font-size:24px;flex:none;transition:transform .2s ease;}
-        .yk-faq-item.open .yk-faq-plus{transform:rotate(45deg);}
-        .yk-faq-a{font-size:15px;color:var(--ink-soft);padding:0 0 20px;max-width:64ch;}
-
-        /* form */
-        .yk-form-sec{background:var(--ink);color:#fff;}
-        .yk-form-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:48px;align-items:start;}
-        .yk-form-sec .yk-kicker{color:#ff7a45;}
-        .yk-form-sec h2{color:#fff;font-size:clamp(30px,4vw,44px);}
-        .yk-form-sec .lead{color:#ccc3ba;font-size:17px;margin-top:14px;max-width:34ch;}
-        .yk-form-promises{margin-top:26px;display:grid;gap:12px;}
-        .yk-form-promises div{display:flex;align-items:center;gap:10px;font-size:15px;color:#e9e2da;}
-        .yk-form-promises svg{color:var(--orange);flex:none;}
-        .yk-form-call{margin-top:24px;display:inline-flex;align-items:center;gap:9px;color:#fff;
-          text-decoration:none;font-weight:600;font-size:16px;}
-        .yk-form-call svg{color:var(--orange);}
-        .yk-form-call:hover{color:#ff8254;}
-        .yk-card-form{background:#fff;color:var(--ink);border-radius:22px;padding:30px;}
-        .yk-field{margin-bottom:16px;}
-        .yk-field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--ink);}
-        .yk-input{width:100%;font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;padding:12px 14px;
-          border:1.5px solid var(--line);border-radius:11px;background:var(--paper);color:var(--ink);}
-        .yk-input:focus{outline:none;border-color:var(--orange);background:#fff;}
-        textarea.yk-input{resize:vertical;min-height:84px;}
-        .yk-checks{display:flex;flex-wrap:wrap;gap:9px;}
-        .yk-check{cursor:pointer;font-size:14px;font-weight:600;padding:9px 14px;border-radius:999px;
-          border:1.5px solid var(--line);background:var(--paper);user-select:none;transition:all .14s ease;
-          position:relative;}
-        .yk-check.on{background:var(--orange);border-color:var(--orange);color:#fff;}
-        .yk-check:focus-within{outline:3px solid var(--orange);outline-offset:2px;}
-        .yk-check input{position:absolute;opacity:0;width:0;height:0;}
-        .yk-submit{width:100%;justify-content:center;margin-top:6px;font-size:16px;padding:15px;}
-        .yk-submit[disabled]{opacity:.7;cursor:default;}
-        .yk-error{background:var(--orange-soft);color:var(--orange-deep);font-size:14px;font-weight:600;
-          padding:10px 14px;border-radius:10px;margin-bottom:14px;}
-        .yk-success{text-align:center;padding:20px 8px;}
-        .yk-success .ok{width:62px;height:62px;border-radius:50%;background:var(--orange);color:#fff;
-          display:grid;place-items:center;margin:0 auto 18px;}
-        .yk-success h3{font-size:24px;font-weight:800;margin-bottom:8px;}
-        .yk-success p{color:var(--ink-soft);font-size:15px;margin-bottom:6px;}
-        .yk-success .sel{font-size:14px;color:var(--orange);font-weight:600;margin:10px 0 20px;}
-
-        /* footer */
-        .yk-footer{background:var(--paper);border-top:1px solid var(--line);padding:40px 0 30px;}
-        .yk-footer-in{display:flex;flex-wrap:wrap;gap:24px;justify-content:space-between;align-items:flex-start;}
-        .yk-foot-contact{display:grid;gap:9px;}
-        .yk-foot-contact a{color:var(--ink-soft);text-decoration:none;display:flex;align-items:center;
-          gap:9px;font-size:15px;}
-        .yk-foot-contact a:hover{color:var(--orange);}
-        .yk-foot-contact svg{color:var(--orange);}
-        .yk-foot-note{font-size:13px;color:var(--ink-soft);margin-top:22px;max-width:46ch;}
-        .yk-foot-bottom{margin-top:26px;padding-top:18px;border-top:1px solid var(--line);
-          font-size:13px;color:var(--ink-soft);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
-
-        /* floating mobile call button */
-        .yk-fab{display:none;position:fixed;right:18px;bottom:18px;z-index:50;
-          background:var(--orange);color:#fff;border-radius:999px;padding:14px 20px;
-          font-weight:700;font-size:15px;align-items:center;gap:9px;text-decoration:none;
-          box-shadow:0 10px 30px rgba(215,63,9,.4);}
-        .yk-fab:active{transform:scale(.97);}
-
-        /* reveal anim */
-        .yk-reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease;}
-        .yk-in{opacity:1;transform:none;}
-
-        @media (max-width:880px){
-          .ykx-calc{grid-template-columns:1fr;}
-          .ykx-controls{border-right:none;border-bottom:1px solid var(--line);}
-          .ykx-care{grid-template-columns:1fr;}
-          .ykx-walks{grid-template-columns:1fr 1fr;}
-          .yk-hero-grid{grid-template-columns:1fr;gap:24px;}
-          .yk-hero-art{order:-1;max-width:380px;}
-          .yk-cards{grid-template-columns:1fr;}
-          .yk-dogs{grid-template-columns:repeat(2,minmax(0,160px));}
-          .yk-steps{grid-template-columns:1fr 1fr;}
-          .yk-founder{grid-template-columns:1fr;gap:26px;}
-          .yk-founder-photo{max-width:300px;}
-          .yk-form-grid{grid-template-columns:1fr;gap:30px;}
-          .yk-nav .yk-hide-sm{display:none;}
-          .yk-fab{display:inline-flex;}
+        @media (max-width:900px){
+          .yk-links,.yk-nav .yk-phone{display:none;}
+          .yk-menu-btn{display:inline-flex;}
+          .yk-drawer{display:block; border-top:1px solid var(--line); padding:8px 24px 18px;}
+          .yk-drawer a,.yk-drawer button{display:block; width:100%; text-align:left; background:none; border:0; font:inherit; font-weight:600; padding:12px 0; cursor:pointer; text-decoration:none;}
+          .yk-hero{padding:36px 0 8px;}
+          .yk-hero-grid,.yk-why-head,.yk-contact,.yk-foot-grid,.yk-plans,.yk-steps,.yk-trust,.yk-dogs{grid-template-columns:1fr;}
+          .yk-plans{grid-template-columns:1fr 1fr;}
+          .yk-dogs{grid-template-columns:1fr 1fr;}
+          .yk-owner{max-width:240px;}
+          .yk-row-3{grid-template-columns:1fr;}
+          .yk-sticky{display:flex; position:fixed; left:0; right:0; bottom:0; z-index:50; gap:8px; padding:10px 12px calc(10px + env(safe-area-inset-bottom)); background:#fff; border-top:1px solid var(--line);}
+          .yk-sticky .yk-btn{flex:1;}
+          .yk-sticky .yk-call{flex:0 0 auto; padding-inline:16px;}
+          .yk{padding-bottom:76px;}
         }
-        @media (max-width:520px){
-          .yk-steps{grid-template-columns:1fr;}
-          .ykx-walks{grid-template-columns:1fr;}
-          .ykx-matrix{font-size:13px;}
-          .ykx-matrix th,.ykx-matrix td{padding:11px 8px;}
+        @media (max-width:560px){
+          .yk-plans,.yk-row{grid-template-columns:1fr;}
+          .yk-wrap{padding:0 16px;}
+          .yk-section{padding:64px 0;}
         }
         @media (prefers-reduced-motion:reduce){
-          .yk-reveal{opacity:1;transform:none;transition:none;}
-          .yk-btn:hover,.yk-card:hover{transform:none;}
+          .yk-fade{opacity:1; transform:none; transition:none;}
+          .yk-btn:hover{transform:none;}
           *{scroll-behavior:auto !important;}
         }
       `}</style>
 
-      {/* NAV */}
-      <nav className="yk-nav">
-        <div className="yk-wrap yk-nav-in">
-          <div className="yk-logo">
-            <span className="yk-logo-mark"><PawPrint size={18} /></span>
-            {config.businessName}
-          </div>
-          <div className="yk-nav-actions">
-            <a className="yk-nav-call yk-hide-sm" href={TEL} onClick={() => trackEvent("call_click", { location: "nav" })}><Phone size={16} /> {config.phoneDisplay}</a>
-            <button className="yk-btn yk-btn-primary" onClick={() => scrollToForm()}>
-              Get a free quote
-            </button>
-          </div>
-        </div>
-      </nav>
+      <a className="yk-skip" href="#quote">Skip to the free quote</a>
 
-      {/* HERO */}
-      <header className="yk-hero">
-        <div className="yk-wrap yk-hero-grid">
-          <div>
-            <span className="yk-eyebrow"><MapPin size={14} /> {cityLine}</span>
-            <h1>A clean backyard,<br /><span className="yk-orange">handled weekly.</span></h1>
-            <p className="lead">Dog waste removal, pet sitting, and dog walking in {config.primaryCity} from someone local you can trust.</p>
-            <div className="yk-price-chip">
-              <b>from $80/mo</b><span>4 visits · weekly waste removal</span>
-            </div>
-            <div className="yk-hero-cta">
-              <button className="yk-btn yk-btn-primary" onClick={() => scrollToForm("waste")}>
-                Get a free quote <ArrowRight size={17} />
-              </button>
-              <button className="yk-btn yk-btn-ghost" onClick={() => document.getElementById("services")?.scrollIntoView({ behavior: "smooth" })}>
-                See what I do
-              </button>
-            </div>
-          </div>
-          <div className="yk-hero-art">
-            <img
-              src="/dogs/dog-poodle.jpg"
-              alt={`Coco, a teacup poodle, in a clean backyard in ${config.primaryCity}, ${config.primaryState}`}
-              width="900"
-              height="1350"
-              loading="eager"
-              fetchpriority="high"
-              style={{ objectPosition: "center 28%" }}
-            />
-          </div>
+      <header className="yk-header">
+        <div className="yk-wrap yk-nav">
+          <a className="yk-brand" href="#top" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
+            <span className="yk-mark" aria-hidden="true"><PawPrint size={18} /></span>
+            {config.businessName}
+          </a>
+          <ul className="yk-links">
+            <li><a href="#how-it-works">How it works</a></li>
+            <li><a href="#pricing">Pricing</a></li>
+            <li><a href="#faq">FAQ</a></li>
+            <li><a href="#contact">Contact</a></li>
+          </ul>
+          <a className="yk-phone" href={TEL} onClick={() => trackEvent("call_click", { location: "nav" })}>
+            <Phone size={15} aria-hidden="true" /> {config.phoneDisplay}
+          </a>
+          <button className="yk-menu-btn" type="button" aria-expanded={menuOpen} aria-controls="mobile-menu" aria-label={menuOpen ? "Close menu" : "Open menu"} onClick={() => setMenuOpen((v) => !v)}>
+            {menuOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
         </div>
+        {menuOpen && (
+          <div className="yk-drawer" id="mobile-menu">
+            <a href="#how-it-works" onClick={() => setMenuOpen(false)}>How it works</a>
+            <a href="#pricing" onClick={() => setMenuOpen(false)}>Pricing</a>
+            <a href="#faq" onClick={() => setMenuOpen(false)}>FAQ</a>
+            <a href="#contact" onClick={() => setMenuOpen(false)}>Contact</a>
+            <a href={TEL} onClick={() => trackEvent("call_click", { location: "nav" })}>{config.phoneDisplay}</a>
+          </div>
+        )}
       </header>
 
-      {/* PROMISE STRIP */}
-      <div className="yk-strip">
-        <div className="yk-strip-in">
-          {PROMISES.map((p) => (
-            <div className="yk-strip-item" key={p.label}><p.icon size={17} /> {p.label}</div>
-          ))}
-        </div>
-      </div>
-
-      {/* SERVICES */}
-      <section className="yk-sec" id="services">
-        <div className="yk-wrap">
-          <div className="yk-sec-head yk-reveal">
-            <div className="yk-kicker">What I do</div>
-            <h2>Three ways I keep your pets and yard cared for.</h2>
-          </div>
-          <div className="yk-cards">
-            {SERVICES.map((s) => (
-              <div className={`yk-card yk-reveal ${s.id === "waste" ? "hero" : ""}`} key={s.id}>
-                {s.tag && <span className="yk-tag">{s.tag}</span>}
-                <div className="yk-card-icon"><s.icon size={24} /></div>
-                <h3>{s.name}</h3>
-                <div className="cad">
-                  {s.price ? <><b>{s.price}</b> · {s.cadence}</> : s.cadence}
-                </div>
-                <p>{s.blurb}</p>
-                <button className="yk-link" onClick={() => scrollToForm(s.id)}>
-                  {s.cta} <ArrowRight size={16} />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* HOW IT WORKS */}
-      <section className="yk-sec yk-steps-sec">
-        <div className="yk-wrap">
-          <div className="yk-sec-head yk-reveal">
-            <div className="yk-kicker">Every visit</div>
-            <h2>What a weekly visit looks like.</h2>
-          </div>
-          <div className="yk-steps">
-            {STEPS.map((st, i) => (
-              <div className="yk-step yk-reveal" key={st.title}>
-                <div className="yk-step-n">0{i + 1}</div>
-                <div className="yk-step-ico"><st.icon size={20} /></div>
-                <h3>{st.title}</h3>
-                <p>{st.body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* DOG SIZE GALLERY */}
-      <section className="yk-sec" style={{ paddingTop: 0 }}>
-        <div className="yk-wrap">
-          <div className="yk-sec-head yk-reveal">
-            <div className="yk-kicker">Every size welcome</div>
-            <h2>From pocket-sized to peak Great Dane.</h2>
-            <p>Big or small, every dog gets the same care — and pricing scales fairly with your pack.</p>
-          </div>
-          <div className="yk-dogs">
-            {DOGS.map((d) => (
-              <figure className="yk-dogcard yk-reveal" key={d.name}>
-                <img src={d.img} alt={`${d.name}, a ${d.size.toLowerCase()} ${d.breed}`} loading="lazy" style={{ objectPosition: d.pos }} />
-                <figcaption>
-                  <span className="yk-dogsize">{d.size}</span>
-                  <b>Meet {d.name}</b>
-                  <span className="yk-dogbreed">{d.breed}</span>
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* PRICING */}
-      <section className="yk-sec" id="pricing">
-        <div className="yk-wrap">
-          <div className="yk-sec-head yk-reveal">
-            <div className="yk-kicker">Pricing</div>
-            <h2>Honest, local pricing — no contracts, ever.</h2>
-            <p>More dogs means a little more time, so prices scale fairly with your pack. Here's where things start; your final quote depends on yard size and access.</p>
-          </div>
-
-          {/* Yard cleanup — interactive */}
-          <h3 className="ykx-subhead"><PawPrint size={18} /> Weekly yard cleanup</h3>
-          <div className="ykx-calc yk-reveal">
-            <div className="ykx-controls">
-              <p className="ykx-ctl-label">How often?</p>
-              <div className="ykx-seg">
-                {YARD.frequencies.map((f) => (
-                  <button key={f.id} className={`ykx-chip ${freq === f.id ? "on" : ""}`} onClick={() => setFreq(f.id)} aria-pressed={freq === f.id}>
-                    {f.popular && <span className="ykx-pop">Popular</span>}
-                    {f.label}<small>{f.sub}</small>
-                  </button>
-                ))}
-              </div>
-              <p className="ykx-ctl-label">How many dogs?</p>
-              <div className="ykx-dogrow">
-                {[1, 2, 3].map((d) => (
-                  <button key={d} className={`ykx-dogbtn ${dogs === d ? "on" : ""}`} onClick={() => setDogs(d)} aria-pressed={dogs === d}>
-                    <Dog size={20} />{d === 3 ? "3+" : d}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="ykx-result">
-              <div className="ykx-amt">${yardPrice}<small>/mo</small></div>
-              <div className="ykx-subr">
-                {YARD.frequencies.find((f) => f.id === freq).label} · {dogs === 3 ? "3+ dogs" : dogs === 1 ? "1 dog" : "2 dogs"}
-              </div>
-              <div className="ykx-meta">≈ ${perVisit.toFixed(0)} per visit · haul-away &amp; gate photo included · cancel anytime</div>
-            </div>
-          </div>
-          <table className="ykx-matrix">
-            <thead>
-              <tr>
-                <th style={{ textAlign: "left" }}>Monthly price</th>
-                <th>1 dog</th>
-                <th>2 dogs</th>
-                <th>3+ dogs</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <th>Weekly <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>(4 visits)</span></th>
-                <td className="hl">${YARD.prices.weekly[1]}</td>
-                <td>${YARD.prices.weekly[2]}</td>
-                <td>${YARD.prices.weekly[3]}</td>
-              </tr>
-              <tr>
-                <th>Twice weekly <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>(8 visits)</span></th>
-                <td>${YARD.prices.twice[1]}</td>
-                <td>${YARD.prices.twice[2]}</td>
-                <td>${YARD.prices.twice[3]}</td>
-              </tr>
-              <tr>
-                <th>Every other week <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>(2 visits)</span></th>
-                <td>${YARD.prices.biweekly[1]}</td>
-                <td>${YARD.prices.biweekly[2]}</td>
-                <td>${YARD.prices.biweekly[3]}</td>
-              </tr>
-            </tbody>
-          </table>
-          <p className="ykx-note">First-time or overgrown yards: a one-time initial cleanup starts at <b>${YARD.initialCleanup}</b> (priced by how much has built up). The first clean is the heaviest — after that, recurring visits keep it easy.</p>
-
-          {/* Dog care */}
-          <h3 className="ykx-subhead" style={{ marginTop: 48 }}><Home size={18} /> Dog care while you're away</h3>
-          <div className="ykx-care yk-reveal">
-            <div className="ykx-carecard">
-              <span className="ykx-caretag">Overnight</span>
-              <h4>House &amp; Pet Sitting</h4>
-              <p className="cdesc">I stay overnight in your home, so your dog keeps their routine and your house stays lived-in and secure.</p>
-              <div className="ykx-custom">from $55<small>/night · 2-night minimum · weekend from $110</small></div>
-              <ul>
-                <li><Check size={16} /> Overnight stays in your home</li>
-                <li><Check size={16} /> Feeding, fresh water, potty breaks &amp; walks</li>
-                <li><Check size={16} /> Playtime, company &amp; daily photo updates</li>
-                <li><Check size={16} /> Free meet-and-greet before your first stay</li>
-              </ul>
-            </div>
-            <div className="ykx-carecard">
-              <span className="ykx-caretag">Drop-in visits</span>
-              <h4>Dog Sitting &amp; Check-ins</h4>
-              <p className="cdesc">I come by while you're gone to monitor, feed, and care for your dog — no overnight stay needed.</p>
-              <div className="ykx-custom">from $20<small>per visit · $25 standard (30 min)</small></div>
-              <ul>
-                <li><Check size={16} /> Wellness checks &amp; monitoring</li>
-                <li><Check size={16} /> Feeding, fresh water &amp; potty breaks</li>
-                <li><Check size={16} /> Walks &amp; playtime</li>
-                <li><Check size={16} /> Photo &amp; text update every visit</li>
-              </ul>
-            </div>
-          </div>
-          <p className="ykx-note">Add-ons: each additional pet <b>+$10/night</b> (sitting) or <b>+$5/visit</b> (drop-ins); holiday nights <b>+$15</b>; puppy, medication, or special care <b>+$10/night</b>. Final price confirmed at a free meet-and-greet.</p>
-
-          {/* Dog walking */}
-          <h3 className="ykx-subhead" style={{ marginTop: 48 }}><Footprints size={18} /> Dog walking</h3>
-          <div className="ykx-walks yk-reveal">
-            {WALKS.map((w) => (
-              <div key={w.len} className={`ykx-pcard ${w.popular ? "on" : ""}`}>
-                {w.popular && <span className="ykx-pop" style={{ top: -9, right: 14 }}>Popular</span>}
-                <div className="len">{w.len}</div>
-                <div className="amt">${w.price}</div>
-                <div className="desc">{w.desc}</div>
-              </div>
-            ))}
-          </div>
-          <p className="ykx-note">Add-ons: <b>+$5</b> per additional dog from the same home · <b>+$5</b> evenings (after 5pm) &amp; weekends. Prefer an hourly number? A full hour is <b>$35</b>.</p>
-
-          {/* Guarantee */}
-          <div className="ykx-guarantee yk-reveal">
-            <div className="ykx-guar-ico"><ShieldCheck size={26} /></div>
-            <div className="ykx-guar-txt">
-              <h3>Satisfaction guaranteed</h3>
-              <p>If a visit isn't right, tell me and I'll come back and fix it — free.</p>
-            </div>
-            <button className="yk-btn yk-btn-primary" onClick={() => scrollToForm("waste")}>
-              Get my free quote <ArrowRight size={17} />
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* FOUNDER */}
-      <section className="yk-sec">
-        <div className="yk-wrap yk-founder yk-reveal">
-          <div className="yk-founder-photo">
-            <img
-              src="/owner.jpg"
-              alt={`${config.ownerName}, your Yard Keeper in ${config.primaryCity}, ${config.primaryState}`}
-              width="1258"
-              height="1979"
-              loading="lazy"
-              style={{ objectPosition: "center 20%" }}
-            />
-          </div>
-          <div>
-            <div className="yk-kicker">Meet your Yard Keeper</div>
-            <blockquote>
-              "My name and my reputation are on every single visit — so your gate gets latched and your yard gets spotless."
-            </blockquote>
-            <p>
-              Hi, I'm <b>{config.ownerName}</b> — the Yard Keeper. I'm a licensed CNA (Certified
-              Nursing Assistant) and a second-year pre-med student at Oregon State University.
-              Caring for people and animals — reliably, and with real attention to detail — is
-              simply what I do.
-            </p>
-            <p>
-              I started {config.businessName} to do honest work for my neighbors and help put
-              myself through school. This summer I'm serving {config.primaryCity}; come {config.comingSoonWhen}, I'm
-              bringing the same care to {config.comingSoonCity}, the town I call home at OSU. Either way,
-              you get a local you can count on — not a faceless service.
-            </p>
-            <div className="yk-creds">
-              <span><ShieldCheck size={14} /> Licensed CNA</span>
-              <span><GraduationCap size={14} /> Pre-Med @ Oregon State</span>
-            </div>
-            <div className="sig">— {config.ownerName}, Owner</div>
-          </div>
-        </div>
-      </section>
-
-      {/* SERVICE AREA */}
-      <section className="yk-sec" style={{ paddingTop: 0 }}>
-        <div className="yk-wrap">
-          <div className="yk-sec-head yk-reveal">
-            <div className="yk-kicker">Where I work</div>
-            <h2>Serving the Oregon coast — and heading to {config.comingSoonCity}.</h2>
-          </div>
-          <div className="yk-area yk-reveal">
-            <div className="yk-area-card now">
-              <div className="yk-area-pin"><MapPin size={20} /></div>
-              <div>
-                <div className="when">Now serving</div>
-                <h3>{config.primaryCity}, Oregon</h3>
-                <p>Taking new weekly waste-removal, sitting, and walking clients today.</p>
-              </div>
-            </div>
-            <div className="yk-area-card">
-              <div className="yk-area-pin"><MapPin size={20} /></div>
-              <div>
-                <div className="when">Starting {config.comingSoonWhen}</div>
-                <h3>{config.comingSoonCity}, Oregon</h3>
-                <p>Bringing the same trusted service to the {config.comingSoonCity} area. Get on the list early.</p>
-              </div>
-            </div>
-          </div>
-          {config.nearbyAreas?.length > 0 && (
-            <p className="yk-area-towns yk-reveal">
-              <b>Also serving nearby:</b> {config.nearbyAreas.join(" · ")} — and the surrounding central Oregon coast.
-            </p>
-          )}
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section className="yk-sec" style={{ paddingTop: 0 }}>
-        <div className="yk-wrap">
-          <div className="yk-sec-head yk-reveal" style={{ margin: "0 auto 30px", textAlign: "center", maxWidth: "100%" }}>
-            <div className="yk-kicker">Good to know</div>
-            <h2>Questions, answered straight.</h2>
-          </div>
-          <div className="yk-faq yk-reveal">
-            {FAQ.map((f, i) => (
-              <div className={`yk-faq-item ${openFaq === i ? "open" : ""}`} key={f.q}>
-                <button className="yk-faq-q" onClick={() => setOpenFaq(openFaq === i ? null : i)} aria-expanded={openFaq === i}>
-                  {f.q} <span className="yk-faq-plus">+</span>
-                </button>
-                {openFaq === i && <div className="yk-faq-a">{f.a}</div>}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* BOOKING FORM */}
-      <section className="yk-sec yk-form-sec" id="quote" ref={formRef}>
-        <div className="yk-wrap yk-form-grid">
-          <div className="yk-reveal">
-            <div className="yk-kicker">Get started</div>
-            <h2>Tell me about your yard.</h2>
-            <p className="lead">Send a few details and I'll get back to you within a few hours with a quote.</p>
-            <div className="yk-form-promises">
-              <div><Clock size={18} /> Quick response — usually within hours</div>
-              <div><ShieldCheck size={18} /> 100% satisfaction guarantee</div>
-              <div><Check size={18} /> No contracts, no pressure</div>
-            </div>
-            <a className="yk-form-call" href={TEL} onClick={() => trackEvent("call_click", { location: "form" })}><Phone size={18} /> Prefer to talk? Call or text {config.phoneDisplay}</a>
-          </div>
-
-          <div className="yk-card-form yk-reveal">
-            {submitted ? (
-              <div className="yk-success">
-                <div className="ok"><Check size={30} /></div>
-                <h3>Thanks, {form.name.split(" ")[0] || "friend"}!</h3>
-                <p>I've got your request and I'll reach out within a few hours.</p>
-                {selectedServiceLabels.length > 0 && (
-                  <div className="sel">You're interested in: {selectedServiceLabels.join(", ")}</div>
-                )}
-                <button className="yk-btn yk-btn-ghost" onClick={() => { setSubmitted(false); setForm({ name: "", phone: "", email: "", area: "", message: "" }); setService({ waste: false, sitting: false, walking: false, unsure: false }); }}>
-                  Send another request
-                </button>
-              </div>
-            ) : (
-              <div>
-                {error && <div className="yk-error">{error}</div>}
-                <div className="yk-field">
-                  <label>What services are you interested in?</label>
-                  <div className="yk-checks">
-                    <label className={`yk-check ${service.waste ? "on" : ""}`}>
-                      <input type="checkbox" checked={service.waste} onChange={() => toggleService("waste")} /> Waste removal
-                    </label>
-                    <label className={`yk-check ${service.sitting ? "on" : ""}`}>
-                      <input type="checkbox" checked={service.sitting} onChange={() => toggleService("sitting")} /> Pet sitting
-                    </label>
-                    <label className={`yk-check ${service.walking ? "on" : ""}`}>
-                      <input type="checkbox" checked={service.walking} onChange={() => toggleService("walking")} /> Dog walking
-                    </label>
-                    <label className={`yk-check ${service.unsure ? "on" : ""}`}>
-                      <input type="checkbox" checked={service.unsure} onChange={() => toggleService("unsure")} /> Not sure yet
-                    </label>
-                  </div>
-                </div>
-                <div className="yk-field">
-                  <label>Name</label>
-                  <input className="yk-input" value={form.name} onChange={update("name")} placeholder="Your name" />
-                </div>
-                <div className="yk-field">
-                  <label>Phone</label>
-                  <input className="yk-input" value={form.phone} onChange={update("phone")} placeholder="(541) 555-0123" inputMode="tel" />
-                </div>
-                <div className="yk-field">
-                  <label>Email <span style={{ color: "var(--ink-soft)", fontWeight: 400 }}>(optional)</span></label>
-                  <input className="yk-input" value={form.email} onChange={update("email")} placeholder="you@email.com" inputMode="email" />
-                </div>
-                <div className="yk-field">
-                  <label>Neighborhood or address</label>
-                  <input className="yk-input" value={form.area} onChange={update("area")} placeholder={`e.g. ${config.primaryCity} — Greentrees`} />
-                </div>
-                <div className="yk-field">
-                  <label>Anything I should know? <span style={{ color: "var(--ink-soft)", fontWeight: 400 }}>(optional)</span></label>
-                  <textarea className="yk-input" value={form.message} onChange={update("message")} placeholder="How many dogs, gate access, a nervous pup, etc." />
-                </div>
-                <button className="yk-btn yk-btn-primary yk-submit" onClick={handleSubmit} disabled={submitting}>
-                  {submitting ? "Sending…" : <>Send my request <ArrowRight size={17} /></>}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* FOOTER */}
-      <footer className="yk-footer">
-        <div className="yk-wrap">
-          <div className="yk-footer-in">
+      <main id="top">
+        <section className="yk-hero" aria-labelledby="hero-title">
+          <div className="yk-wrap yk-hero-grid">
             <div>
-              <div className="yk-logo" style={{ marginBottom: 14 }}>
-                <span className="yk-logo-mark"><PawPrint size={18} /></span>
-                {config.businessName}
+              <p className="yk-kicker">{TOWNS.join(" · ")}</p>
+              <h1 id="hero-title">Dog waste removal<br />in <span>{config.primaryCity}</span></h1>
+              <p className="yk-lead">
+                Weekly scooping for homes in {config.primaryCity}, plus walks and in-home sitting when you need them.
+                {" "}{PLANS.weekly.name} is {money(PLANS.weekly.prices[1])}/month for one dog and {money(PLANS.weekly.prices[2])}/month for two.
+                {" "}Haul-away is included. {FIRST_CLEANUP.label}. No contracts.
+              </p>
+              <div className="yk-actions">
+                <button className="yk-btn yk-btn-orange" type="button" onClick={() => go("quote")}>
+                  Get a free quote <ArrowRight size={16} aria-hidden="true" />
+                </button>
+                <a className="yk-btn yk-btn-ghost" href={TEL} onClick={() => trackEvent("call_click", { location: "hero" })}>
+                  <Phone size={15} aria-hidden="true" /> {config.phoneDisplay}
+                </a>
               </div>
-              <p className="yk-foot-note">
-                Honest, reliable pet care from a local college student — clean yards, happy pets,
-                and a satisfaction guarantee on every visit.
+              <p className="yk-fine"><Check size={14} aria-hidden="true" /> Licensed CNA · replies within a few hours</p>
+            </div>
+            <div className="yk-hero-photo">
+              <img
+                src="/dogs/dog-poodle.jpg"
+                alt="Coco, a small apricot poodle, sitting in the grass"
+                width="900"
+                height="675"
+                fetchPriority="high"
+              />
+              <p className="yk-hero-cap">A photo when the gate is closed, sent after every yard visit.</p>
+            </div>
+          </div>
+        </section>
+
+        <section className="yk-section yk-white" id="how-it-works">
+          <div className="yk-wrap">
+            <div className="yk-fade">
+              <p className="yk-kicker">Simple process</p>
+              <h2>How it works</h2>
+            </div>
+            <div className="yk-steps">
+              {STEPS.map((step) => (
+                <article className="yk-step yk-fade" key={step.n}>
+                  <div className="yk-step-top">
+                    <span className="yk-num">{step.n}</span>
+                  </div>
+                  <h3>{step.title}</h3>
+                  <p>{step.body}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="yk-section yk-black" id="why-nyte">
+          <div className="yk-wrap">
+            <div className="yk-why-head yk-fade">
+              <div>
+                <p className="yk-kicker">Why Nyte</p>
+                <h2>A local student who treats your dog carefully.</h2>
+                <p>
+                  {config.ownerName} is the person who shows up. He is a pre-med student at {config.school} and a licensed CNA.
+                  He is careful, he is reliable, and the visit is his name on the line.
+                </p>
+              </div>
+              <figure className="yk-owner">
+                <img
+                  src="/owner.jpg"
+                  alt={`${config.ownerName}, owner of ${config.businessName} in ${config.primaryCity}, ${config.primaryStateName}`}
+                  width="640"
+                  height="800"
+                />
+              </figure>
+            </div>
+            <div className="yk-trust">
+              {TRUST.map((item) => (
+                <article className="yk-fade" key={item.title}>
+                  <Check size={26} aria-hidden="true" />
+                  <h3>{item.title}</h3>
+                  <p>{item.body}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="yk-section" id="pricing">
+          <div className="yk-wrap">
+            <div className="yk-fade">
+              <p className="yk-kicker">Transparent pricing</p>
+              <h2>Simple monthly prices.</h2>
+              <p className="yk-lead" style={{ marginTop: 14 }}>
+                What is printed here is the price. Use the quote below if you have a different number of dogs or want walks added.
               </p>
             </div>
-            <div className="yk-foot-contact">
-              <a href={TEL} onClick={() => trackEvent("call_click", { location: "footer" })}><Phone size={17} /> {config.phoneDisplay}</a>
-              <a href="#quote"><Mail size={17} /> Request a free quote</a>
-              <a href="#services"><MapPin size={17} /> {config.primaryCity}, {config.primaryState} · {config.comingSoonCity} from {config.comingSoonWhen}</a>
+            <div className="yk-plans">
+              <PlanCard plan={PLANS.weekly} popular priceNote={`${money(PLANS.weekly.prices[1] / PLANS.weekly.visitsPerMonth)} a visit · 1 dog. 2 dogs ${money(PLANS.weekly.prices[2])}/month.`} onSelect={() => selectPlan("weekly")} />
+              <PlanCard plan={PLANS.weeklyWalks} priceNote="Weekly scoop plus two 30-minute walks. Launch price for 1 dog." onSelect={() => selectPlan("weekly-walks")} />
+              <PlanCard plan={PLANS.twice} priceNote={`${PLANS.twice.visitsPerMonth} visits a month · published for 1 dog.`} onSelect={() => selectPlan("twice")} />
+              <PlanCard plan={PLANS.sitting} priceNote="Overnight or drop-in, in your home." onSelect={() => selectPlan("sitting")} cta="Ask for a quote" />
+            </div>
+            <p className="yk-note">{FIRST_CLEANUP.label}. {FIRST_CLEANUP.terms}</p>
+          </div>
+        </section>
+
+        <section className="yk-section" id="quote" style={{ paddingTop: 0 }}>
+          <div className="yk-wrap">
+            <div className="yk-quote yk-fade">
+              <p className="yk-kicker">Free quote</p>
+              <h2>Get your price.</h2>
+              <p className="yk-lead" style={{ marginLeft: "auto", marginRight: "auto" }}>
+                Three choices. The price updates immediately, then it rides along when you send the request.
+              </p>
+            </div>
+            <div className="yk-calc yk-fade" role="group" aria-label="Instant price estimate">
+              <span className="yk-field-label" id="dogs-label">Number of dogs</span>
+              <div className="yk-chips" role="radiogroup" aria-labelledby="dogs-label">
+                {[1, 2, 3].map((n) => (
+                  <button key={n} type="button" className={`yk-chip ${quote.dogs === n && !isSitting ? "on" : ""}`} aria-pressed={quote.dogs === n && !isSitting} onClick={() => setDogs(n, "yard")}>
+                    {n === 3 ? "3+ dogs" : `${n} ${n === 1 ? "dog" : "dogs"}`}
+                  </button>
+                ))}
+              </div>
+              <span className="yk-field-label" id="freq-label">How often</span>
+              <div className="yk-chips" role="radiogroup" aria-labelledby="freq-label">
+                <button type="button" className={`yk-chip ${quote.frequency === "weekly" && !isSitting ? "on" : ""}`} aria-pressed={quote.frequency === "weekly" && !isSitting} onClick={() => setFrequency("weekly", "yard")}>
+                  Weekly<small>4 visits / month</small>
+                </button>
+                <button type="button" className={`yk-chip ${quote.frequency === "twice" && !isSitting ? "on" : ""}`} aria-pressed={quote.frequency === "twice" && !isSitting} onClick={() => setFrequency("twice", "yard")}>
+                  Twice a week<small>8 visits / month</small>
+                </button>
+              </div>
+              <span className="yk-field-label" id="walks-label">Walks</span>
+              <div className="yk-chips" role="radiogroup" aria-labelledby="walks-label">
+                <button type="button" className={`yk-chip ${!quote.addWalks && !isSitting ? "on" : ""}`} aria-pressed={!quote.addWalks && !isSitting} onClick={() => setWalks(false, "yard")}>
+                  Yard only
+                </button>
+                <button type="button" className={`yk-chip ${quote.addWalks && !isSitting ? "on" : ""}`} aria-pressed={quote.addWalks && !isSitting} onClick={() => setWalks(true, "yard")}>
+                  Add two walks<small>30 minutes each</small>
+                </button>
+              </div>
+              <div className="yk-result">
+                <div>
+                  <p className="yk-field-label">Your estimate</p>
+                  {estimate.priced ? (
+                    <>
+                      <div className="yk-result-price">{money(estimate.amount)}<small>per month</small></div>
+                      <p>{perVisitLabel}{estimate.detail ? ` · ${estimate.detail}` : ""}</p>
+                    </>
+                  ) : (
+                    <>
+                      <div className="yk-result-price" style={{ fontSize: 40 }}>Ask for a quote</div>
+                      <p style={{ color: "rgba(0,0,0,.64)", fontWeight: 500 }}>{estimate.note}</p>
+                    </>
+                  )}
+                </div>
+                <button className="yk-btn yk-btn-orange" type="button" onClick={() => go("contact")}>
+                  {estimate.priced ? "Request this quote" : "Ask for a quote"} <ArrowRight size={16} aria-hidden="true" />
+                </button>
+              </div>
+              <p className="yk-legal">{FIRST_CLEANUP.label}. {FIRST_CLEANUP.terms} Nyte confirms the final price before the first visit.</p>
+            </div>
+          </div>
+        </section>
+
+        <section className="yk-section yk-white" id="service-area">
+          <div className="yk-wrap">
+            <div className="yk-fade">
+              <p className="yk-kicker">Where he works</p>
+              <h2>Serving {config.primaryCity}</h2>
+              <p className="yk-area-copy" style={{ maxWidth: "62ch", marginTop: 14 }}>
+                The route is {config.primaryCity}. Nyte also lists nearby {config.nearbyAreas.join(", ")} as towns he can reach.
+                He knows these as a student who lives in the valley, not as a stop on a statewide schedule.
+              </p>
+            </div>
+            <div className="yk-towns yk-fade" aria-label="Service towns">
+              {TOWNS.map((town) => (
+                <span className={`yk-town ${town === config.primaryCity ? "home" : ""}`} key={town}>{town}</span>
+              ))}
+            </div>
+            <p className="yk-area-copy">
+              Just outside this list? Send a request anyway. He will tell you yes or no before anyone makes the drive.
+            </p>
+            <div className="yk-dogs">
+              {DOGS.map((dog) => (
+                <figure className="yk-dog yk-fade" key={dog.name}>
+                  <img src={dog.img} alt={`${dog.name}, a ${dog.size.toLowerCase()} ${dog.breed}`} style={{ objectPosition: dog.pos }} />
+                  <figcaption>
+                    <b>{dog.name}</b>
+                    <span>{dog.size} · {dog.breed}</span>
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="yk-section" id="faq">
+          <div className="yk-wrap yk-faq">
+            <div className="yk-fade">
+              <p className="yk-kicker">Questions</p>
+              <h2>Frequently asked</h2>
+            </div>
+            <div className="yk-fade">
+              {FAQ.map((item) => (
+                <details key={item.q}>
+                  <summary>
+                    {item.q}
+                    <Plus />
+                  </summary>
+                  <p>{item.a}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="yk-section yk-white" id="contact">
+          <div className="yk-wrap yk-contact">
+            <div className="yk-fade">
+              <p className="yk-kicker">Get started</p>
+              <h2>Ready for a cleaner yard?</h2>
+              <p>
+                Send the quote you just built. Nyte reads it himself and replies within a few hours to set the first visit.
+              </p>
+              <div className="yk-contact-list">
+                <a href={TEL} onClick={() => trackEvent("call_click", { location: "form" })}>
+                  <Phone size={18} aria-hidden="true" /> {config.phoneDisplay}
+                </a>
+                <p><MapPin size={18} aria-hidden="true" /> {config.primaryCity}, {config.primaryState}</p>
+                <p>{config.hours.label}</p>
+              </div>
+            </div>
+
+            <div className="yk-fade">
+              {/*
+                SWEEPANDGO EMBED POINT
+                When config.booking.enabled is true, mount the Sweep&Go widget
+                in #sweepandgo-booking. Nothing is loaded while that flag is false.
+              */}
+              {config.booking.enabled && (
+                <div id="sweepandgo-booking" data-provider={config.booking.provider} />
+              )}
+
+              {submitted ? (
+                <div className="yk-success" role="status">
+                  <Check size={28} color="#D73F09" aria-hidden="true" />
+                  <h3>Thanks, {form.name.split(" ")[0] || "there"}.</h3>
+                  <p>Nyte has the request and will reach out within a few hours.</p>
+                  <p style={{ color: "#D73F09", fontWeight: 700 }}>{quoteSummary()}</p>
+                  <button className="yk-btn yk-btn-ghost" type="button" onClick={() => { setSubmitted(false); setForm(EMPTY_FORM); }}>
+                    Send another request
+                  </button>
+                </div>
+              ) : (
+                <form className="yk-form" onSubmit={handleSubmit} noValidate>
+                  <div className="yk-banner">
+                    <div>
+                      <span className="yk-field-label">Selected plan</span>
+                      <strong>{estimate.name}</strong>
+                      <span>{estimate.priced ? `${money(estimate.amount)} per month` : "Ask for a quote"}</span>
+                    </div>
+                    <a href="#quote">Edit plan</a>
+                  </div>
+                  {error && <div className="yk-error" role="alert">{error}</div>}
+                  <div className="yk-row">
+                    <label>
+                      <span className="yk-field-label">Name</span>
+                      <input className="yk-input" name="name" autoComplete="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+                    </label>
+                    <label>
+                      <span className="yk-field-label">Phone</span>
+                      <input className="yk-input" name="phone" type="tel" autoComplete="tel" inputMode="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required />
+                    </label>
+                  </div>
+                  <label>
+                    <span className="yk-field-label">Email (optional)</span>
+                    <input className="yk-input" name="email" type="email" autoComplete="email" inputMode="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                  </label>
+                  <label>
+                    <span className="yk-field-label">Neighborhood or address</span>
+                    <input className="yk-input" name="area" autoComplete="street-address" placeholder={`${config.primaryCity}, or a nearby town`} value={form.area} onChange={(e) => setForm({ ...form, area: e.target.value })} />
+                  </label>
+                  <div className="yk-row-3">
+                    <label>
+                      <span className="yk-field-label">Need</span>
+                      <select className="yk-input" value={quote.service} onChange={(e) => setQuote((q) => ({ ...q, service: e.target.value }))}>
+                        <option value="yard">Yard plan</option>
+                        <option value="sitting">In-home pet sitting</option>
+                      </select>
+                    </label>
+                    <label>
+                      <span className="yk-field-label">Dogs</span>
+                      <select className="yk-input" value={String(quote.dogs)} onChange={(e) => setDogs(Number(e.target.value))}>
+                        <option value="1">1 dog</option>
+                        <option value="2">2 dogs</option>
+                        <option value="3">3+ dogs</option>
+                      </select>
+                    </label>
+                    <label>
+                      <span className="yk-field-label">Frequency</span>
+                      <select className="yk-input" value={quote.frequency} onChange={(e) => setFrequency(e.target.value)}>
+                        <option value="weekly">Weekly</option>
+                        <option value="twice">Twice a week</option>
+                      </select>
+                    </label>
+                  </div>
+                  <label>
+                    <span className="yk-field-label">Walks</span>
+                    <select className="yk-input" value={quote.addWalks ? "yes" : "no"} onChange={(e) => setWalks(e.target.value === "yes")}>
+                      <option value="no">Yard only</option>
+                      <option value="yes">Add two 30-minute walks</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span className="yk-field-label">Notes (optional)</span>
+                    <textarea className="yk-input" name="message" placeholder="Gate code, a nervous dog, dates you need sitting..." value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} />
+                  </label>
+                  <button className="yk-btn yk-btn-orange" type="submit" disabled={submitting}>
+                    {submitting ? "Sending…" : "Send my free quote request"}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="yk-footer">
+        <div className="yk-wrap">
+          <div className="yk-foot-grid">
+            <div>
+              <h2>{config.businessName}</h2>
+              <p>
+                Dog waste removal, dog walking, and in-home pet sitting in {config.primaryCity}, {config.primaryStateName}.
+                Owned by {config.ownerName}.
+              </p>
+            </div>
+            <div>
+              <p className="yk-foot-label">Contact</p>
+              <p><a href={TEL} onClick={() => trackEvent("call_click", { location: "footer" })}>{config.phoneDisplay}</a></p>
+              <p>{config.hours.label}</p>
+              <p><a href="#quote">Get a free quote</a></p>
+            </div>
+            <div>
+              <p className="yk-foot-label">Towns</p>
+              {TOWNS.map((town) => <p key={town}>{town}</p>)}
             </div>
           </div>
           <div className="yk-foot-bottom">
             <span>© {new Date().getFullYear()} {config.businessName} · {config.domain}</span>
-            <span>Built to help put a local student through college 🐾</span>
+            <span>{config.primaryCity}, {config.primaryState} · independent, locally run</span>
           </div>
         </div>
       </footer>
 
-      {/* FLOATING CALL BUTTON (mobile) */}
-      <a className="yk-fab" href={TEL} aria-label={`Call ${config.businessName}`} onClick={() => trackEvent("call_click", { location: "fab" })}>
-        <Phone size={18} /> Call now
-      </a>
+      <div className={`yk-sticky ${menuOpen ? "yk-hide" : ""}`}>
+        <button className="yk-btn yk-btn-orange" type="button" onClick={() => go("quote")}>Get a free quote</button>
+        <a className="yk-btn yk-btn-black yk-call" href={TEL} aria-label={`Call ${config.phoneDisplay}`} onClick={() => trackEvent("call_click", { location: "mobile" })}>
+          <Phone size={18} aria-hidden="true" />
+        </a>
+      </div>
     </div>
+  );
+}
+
+function PlanCard({ plan, popular, priceNote, onSelect, cta = "Get a free quote" }) {
+  const amount = plan.prices ? plan.prices[1] : null;
+  return (
+    <article className={`yk-plan yk-fade ${popular ? "pop" : ""}`}>
+      {plan.tag && <span className="yk-tag">{plan.tag}</span>}
+      <div>
+        <p className="yk-plan-name">{plan.name}</p>
+        <div className="yk-price">
+          {amount != null ? money(amount) : "Ask"}
+          <small>{amount != null ? "per month" : "for a quote"}</small>
+        </div>
+        <p className="yk-subprice">{priceNote}</p>
+      </div>
+      <ul>
+        {plan.includes.map((item) => (
+          <li key={item}><Check size={16} aria-hidden="true" /> {item}</li>
+        ))}
+      </ul>
+      <button className={`yk-btn ${popular ? "yk-btn-orange" : "yk-btn-black"}`} type="button" onClick={onSelect}>
+        {cta}
+      </button>
+    </article>
+  );
+}
+
+function Plus() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
   );
 }
