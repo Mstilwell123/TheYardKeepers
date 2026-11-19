@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "The Yard Keepers — dog waste removal, in-home pet sitting & dog walking in Florence and Corvallis, OR.",
+  "description": "The Yard Keepers — dog waste removal, in-home pet sitting, and dog walking in Corvallis, OR.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

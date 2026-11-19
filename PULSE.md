@@ -12,7 +12,7 @@ Mark runs marketing (top of funnel: get found → get leads). Nyte runs operatio
 | **Leads** | How many quote requests came in? | Formspree dashboard (you're BCC'd on each) | grow weekly |
 | **Traffic + source** | Is marketing driving visits, from where? | Vercel Analytics / GA4 | grow weekly |
 | **Conversion rate** | Do visitors actually request a quote? | GA4: `quote_submitted` ÷ visitors | **8%+** |
-| **Local discovery** | Found for "dog waste removal Florence"? | Search Console + Google Business Profile | climbing |
+| **Local discovery** | Found for "dog poop scooping Corvallis", "dog walker Corvallis", "pet sitter Corvallis OR"? | Search Console + Google Business Profile | climbing |
 | **Health (the real one)** | Recurring subscribers + monthly revenue | Pulse sheet (Nyte updates) | grow monthly |
 
 ---
@@ -24,7 +24,7 @@ Mark runs marketing (top of funnel: get found → get leads). Nyte runs operatio
 3. **Conversion** — GA4: `quote_submitted` events ÷ visitors. Under 8%? The page or the
    traffic quality needs work. Over 8%? Pour more into whatever channel is sending traffic.
 4. **Calls** — GA4: `call_click` events (nav/form/footer/mobile). Phone-first leads.
-5. **Search** — Search Console: impressions & avg position for the Florence keywords.
+5. **Search** — Search Console: impressions and average position for the Corvallis keywords (dog poop scooping Corvallis, dog walker Corvallis, pet sitter Corvallis OR).
 
 Jot the five numbers in the Pulse sheet so trends are visible over time.
 
@@ -35,7 +35,7 @@ Jot the five numbers in the Pulse sheet so trends are visible over time.
 - **Lead → customer rate**: of last month's leads, how many became paying clients?
 - **Cost per lead** (if running ads): ad spend ÷ leads.
 - **Top converting source**: double down on it next month.
-- **August check**: as the Corvallis launch nears, watch for Corvallis search impressions.
+- **Town list**: if Nyte adds or drops a nearby town, update `nearbyAreas` in `src/config.js` and the matching structured data in `index.html`.
 
 ---
 
